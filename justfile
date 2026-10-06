@@ -1,4 +1,4 @@
-set windows-shell := ["pwsh", "-NoProfile", "-Command"]
+set windows-shell := ["powershell", "-NoProfile", "-Command"]
 
 default:
     @just --list

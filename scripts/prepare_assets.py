@@ -10,13 +10,14 @@ import zipfile
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo
 
+from asset_contract import EXPECTED_IMAGE_NAMES
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 LOCAL_ASSETS = PROJECT_ROOT / "local-assets"
 ARCHIVE = LOCAL_ASSETS / "supplied" / "dataset.zip"
 DATASET = LOCAL_ASSETS / "dataset"
 IMAGE_DIRECTORY = DATASET / "images"
 LABELS_FILE = DATASET / "labels.txt"
-EXPECTED_IMAGES = {f"img{number:04}.png" for number in range(1, 101)}
 IMAGE_NAME = re.compile(r"img\d{4}\.png\Z")
 
 
@@ -39,9 +40,9 @@ def _members(archive: ZipFile) -> tuple[list[ZipInfo], ZipInfo]:
     image_names = [
         member.filename.replace("\\", "/").rsplit("/", maxsplit=1)[-1] for member in images
     ]
-    if set(image_names) != EXPECTED_IMAGES or len(image_names) != len(EXPECTED_IMAGES):
-        missing = sorted(EXPECTED_IMAGES - set(image_names))
-        extra = sorted(set(image_names) - EXPECTED_IMAGES)
+    if set(image_names) != EXPECTED_IMAGE_NAMES or len(image_names) != len(EXPECTED_IMAGE_NAMES):
+        missing = sorted(EXPECTED_IMAGE_NAMES - set(image_names))
+        extra = sorted(set(image_names) - EXPECTED_IMAGE_NAMES)
         raise ValueError(
             "Expected exactly img0001.png through img0100.png in dataset/. "
             f"Missing: {missing[:5]}; unexpected: {extra[:5]}."
@@ -61,7 +62,7 @@ def _existing_dataset_is_complete() -> bool:
         return False
 
     names = {path.name for path in IMAGE_DIRECTORY.iterdir()} if IMAGE_DIRECTORY.is_dir() else set()
-    if names == EXPECTED_IMAGES and LABELS_FILE.is_file():
+    if names == EXPECTED_IMAGE_NAMES and LABELS_FILE.is_file():
         print(f"The 100 images and labels are already prepared under {DATASET}.")
         return True
 
@@ -92,7 +93,7 @@ def prepare() -> None:
                 _copy_member(archive, member, staged_images / name)
             _copy_member(archive, labels, staged_dataset / "labels.txt")
 
-            if {path.name for path in staged_images.iterdir()} != EXPECTED_IMAGES:
+            if {path.name for path in staged_images.iterdir()} != EXPECTED_IMAGE_NAMES:
                 raise OSError("The extracted image set did not match the expected 100 files.")
             staged_dataset.rename(DATASET)
 

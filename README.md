@@ -11,6 +11,8 @@ A native Windows development scaffold for CSC611M Machine Project 1. It defines 
    winget install --id Casey.Just --exact
    ```
 
+   The recipes use Windows PowerShell (`powershell.exe`), which is included with Windows; PowerShell 7 is optional.
+
 2. Install the native Tesseract executable using the [official Windows installation guidance](https://tesseract-ocr.github.io/tessdoc/Installation.html). Make `tesseract.exe` available on `PATH`.
 3. Put the course-provided files in the local locations listed in [`local-assets/README.md`](local-assets/README.md).
 4. From this directory, run:

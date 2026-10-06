@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
+
+from asset_contract import EXPECTED_IMAGE_NAMES
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 LOCAL_ASSETS = PROJECT_ROOT / "local-assets"
@@ -17,8 +19,6 @@ MODEL_DIRECTORY = LOCAL_ASSETS / "models"
 MODEL_FILE = MODEL_DIRECTORY / "eng.traineddata"
 IMAGE_DIRECTORY = LOCAL_ASSETS / "dataset" / "images"
 LABELS_FILE = LOCAL_ASSETS / "dataset" / "labels.txt"
-EXPECTED_IMAGES = {f"img{number:04}.png" for number in range(1, 101)}
-LANGUAGE_LINE = re.compile(r"[A-Za-z0-9_]+\Z")
 
 
 def _report(ok: bool, message: str) -> bool:
@@ -36,31 +36,36 @@ def _tesseract_path() -> Path | None:
 
 
 def _check_model(executable: Path) -> bool:
-    if not MODEL_FILE.is_file():
-        return _report(
-            False,
-            f"English model missing at {MODEL_FILE}. Copy the supplied eng.traineddata there.",
-        )
-
     try:
-        result = subprocess.run(
-            [str(executable), "--list-langs", "--tessdata-dir", str(MODEL_DIRECTORY)],
-            capture_output=True,
-            check=False,
-            text=True,
-            timeout=15,
-        )
+        with tempfile.TemporaryDirectory(prefix="parallel-ocr-model-check-") as temp_directory:
+            probe_image = Path(temp_directory) / "probe.ppm"
+            probe_image.write_bytes(b"P6\n100 100\n255\n" + bytes([255]) * 30_000)
+            result = subprocess.run(
+                [
+                    str(executable),
+                    str(probe_image),
+                    "stdout",
+                    "--tessdata-dir",
+                    str(MODEL_DIRECTORY),
+                    "-l",
+                    "eng",
+                ],
+                capture_output=True,
+                check=False,
+                text=True,
+                timeout=15,
+            )
     except (OSError, subprocess.TimeoutExpired) as error:
-        return _report(False, f"Could not check the English model: {error}")
+        return _report(False, f"Could not initialize the supplied English model: {error}")
 
-    languages = {
-        line.strip() for line in result.stdout.splitlines() if LANGUAGE_LINE.fullmatch(line.strip())
-    }
-    if result.returncode == 0 and "eng" in languages:
-        return _report(True, f"Tesseract can load eng.traineddata from {MODEL_DIRECTORY}.")
+    if result.returncode == 0:
+        return _report(
+            True,
+            f"Tesseract initialized and ran with the supplied model in {MODEL_DIRECTORY}.",
+        )
 
-    detail = result.stderr.strip() or result.stdout.strip() or "no language list was returned"
-    return _report(False, f"Tesseract could not load the supplied English model: {detail}")
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output was returned"
+    return _report(False, f"Tesseract could not initialize the supplied English model: {detail}")
 
 
 def _check_dataset() -> bool:
@@ -72,7 +77,7 @@ def _check_dataset() -> bool:
         )
 
     image_names = {path.name for path in IMAGE_DIRECTORY.glob("*.png")}
-    complete = image_names == EXPECTED_IMAGES and LABELS_FILE.is_file()
+    complete = image_names == EXPECTED_IMAGE_NAMES and LABELS_FILE.is_file()
     ok &= _report(
         complete, f"Prepared 100 images and separate labels under {LOCAL_ASSETS / 'dataset'}."
     )
@@ -98,6 +103,11 @@ def main() -> int:
         if not available:
             print("       Run `just setup` to install locked project dependencies.")
 
+    model_available = _report(MODEL_FILE.is_file(), f"English model file present at {MODEL_FILE}.")
+    errors += not model_available
+    if not model_available:
+        print("       Copy the supplied eng.traineddata to local-assets/models/eng.traineddata.")
+
     executable = _tesseract_path()
     errors += not _report(executable is not None, "Tesseract executable is available.")
     if executable is None:
@@ -121,7 +131,7 @@ def main() -> int:
             errors += not _report(
                 result.returncode == 0, f"{version or 'Tesseract version check'}."
             )
-            if result.returncode == 0:
+            if result.returncode == 0 and model_available:
                 errors += not _check_model(executable)
 
     errors += not _check_dataset()

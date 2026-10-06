@@ -1,6 +1,6 @@
 # Windows setup
 
-The project targets native Windows with Python 3.11. `uv` manages a project-local `.venv` and installs the exact dependency set from `uv.lock`; it can install the required Python version without a separate system Python installation. Install `just` to discover and run the repository tasks.
+The project targets native Windows with Python 3.11. `uv` manages a project-local `.venv` and installs the exact dependency set from `uv.lock`; it can install the required Python version without a separate system Python installation. Install `just` to discover and run the repository tasks. The recipes use the Windows PowerShell shell included with Windows; PowerShell 7 is optional.
 
 ## Three separate OCR prerequisites
 
