@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check --fix
+        entry: uv run --locked --no-sync ruff check --fix --force-exclude
+        language: unsupported
+        types_or: [python, pyi]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --locked --no-sync ruff format --force-exclude
+        language: unsupported
+        types_or: [python, pyi]
+        require_serial: true

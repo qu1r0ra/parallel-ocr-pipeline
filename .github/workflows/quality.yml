@@ -1,0 +1,41 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv and select Python 3.11
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.3"
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install locked project and development dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Check lockfile freshness
+        run: uv lock --check
+
+      - name: Lint
+        run: uv run --no-sync ruff check .
+
+      - name: Check formatting
+        run: uv run --no-sync ruff format --check .
+
+      - name: Type check
+        run: uv run --no-sync basedpyright
+
+      - name: Import source package
+        run: uv run --no-sync python -c "import parallel_ocr_pipeline"
