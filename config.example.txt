@@ -1,0 +1,2 @@
+image_dir=local-assets/dataset/images
+n_workers=2

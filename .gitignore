@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project tooling state
+.basedpyright/
+
+# Local course materials, OCR assets, and run outputs
+/local-assets/supplied/
+/local-assets/models/
+/local-assets/dataset/
+/results/
+/config.txt
