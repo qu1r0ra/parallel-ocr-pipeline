@@ -39,3 +39,6 @@ jobs:
 
       - name: Import source package
         run: uv run --no-sync python -c "import parallel_ocr_pipeline"
+
+      - name: Run behavioral tests
+        run: uv run --no-sync pytest

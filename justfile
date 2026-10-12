@@ -41,7 +41,20 @@ verify:
     uv run --no-sync ruff format --check .
     uv run --no-sync basedpyright
     uv run --no-sync python -c "import parallel_ocr_pipeline"
+    uv run --no-sync pytest
 
 # Run a real Python helper script; this is not an OCR application command.
 run path *args:
     uv run --no-sync python "{{path}}" {{args}}
+
+# Recognize one image with the real Tesseract recognizer.
+recognize path *args:
+    uv run --no-sync python scripts/recognize.py "{{path}}" {{args}}
+
+# Evaluate real OCR on all 100 supplied images against the labels.
+evaluate *args:
+    uv run --no-sync python scripts/evaluate.py {{args}}
+
+# Run the behavioral tests.
+test *args:
+    uv run --no-sync pytest {{args}}

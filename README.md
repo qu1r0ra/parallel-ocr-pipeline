@@ -1,6 +1,6 @@
 # Parallel OCR Pipeline
 
-A native Windows development scaffold for CSC611M Machine Project 1. It defines the project environment, local asset workflow, quality checks, and the interface between OCR and pipeline work. It does not yet implement OCR or a runnable pipeline.
+A native Windows development scaffold for CSC611M Machine Project 1. It defines the project environment, local asset workflow, quality checks, and the interface between OCR and pipeline work. It implements the standalone OCR recognizer and its evaluation, but not yet the runnable pipeline.
 
 ## Start on Windows
 
@@ -31,6 +31,7 @@ The setup task installs the uv-managed Python 3.11 interpreter and creates the p
 - [`config.example.txt`](config.example.txt) shows the agreed future pipeline configuration.
 - [`docs/requirements.md`](docs/requirements.md) summarizes the course handout for project contributors.
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
+- [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/team-handoff.md`](docs/team-handoff.md) records the accepted ownership split and next tasks.
 
-`just` lists the available tasks. There is no `ocr`, `pipeline`, or benchmark command until those implementations exist. `just run <script.py>` only runs the named Python script; it does not imply that a complete OCR application is present.
+`just` lists the available tasks. `just recognize <image>` and `just evaluate` exercise the real OCR recognizer ([`docs/ocr-evaluation.md`](docs/ocr-evaluation.md)); there is no `pipeline` or benchmark command until that implementation exists. `just run <script.py>` only runs the named Python script; it does not imply that a complete OCR application is present.
