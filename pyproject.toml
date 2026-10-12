@@ -16,18 +16,23 @@ build-backend = "uv_build"
 dev = [
     "basedpyright>=1.40.1",
     "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
     "ruff>=0.16.9",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "scripts"]
+src = ["src", "scripts", "tests"]
 
 [tool.ruff.lint]
 extend-select = ["I", "B", "UP"]
 
 [tool.basedpyright]
-include = ["src", "scripts"]
+include = ["src", "scripts", "tests"]
 typeCheckingMode = "standard"
 pythonVersion = "3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]

@@ -6,7 +6,7 @@ This contract lets image recognition and pipeline work proceed independently. [`
 
 The recognizer accepts an already-loaded in-memory Pillow image and returns recognized text as a string. It performs preprocessing and Tesseract inference. It does not open image files, select work, assign output IDs, measure queue wait, aggregate results, or write CSV. A standalone harness may pass one image directly; it does not need the production pipeline.
 
-The recognizer uses `pytesseract` to invoke the native Tesseract executable and passes the explicit `--tessdata-dir` option for `local-assets/models`. Preprocessing choices belong to the OCR implementation and should be evaluated against the supplied labels.
+The recognizer uses `pytesseract` to invoke the native Tesseract executable and points it at `local-assets/models` through `TESSDATA_PREFIX` (see [OCR settings and evaluation](ocr-evaluation.md); `--tessdata-dir` cannot carry paths with spaces through `pytesseract` on Windows). It raises `RecognitionTimeoutError` (transient), `RecognitionFailedError` (terminal per image), or `PrerequisiteError` (global). Preprocessing choices belong to the OCR implementation and should be evaluated against the supplied labels.
 
 ## Image lifecycle
 
