@@ -2,6 +2,8 @@
 
 The project plan and testing seams are confirmed.
 
+The preparation decisions below describe the original scaffold. The subsequent joint [concurrency design](concurrency-design.md), confirmed October 12, 2026, selects threads, bounded `queue.Queue`, per-image recovery, partial-output reporting, and Python 3.15.0 as the migration target. It resolves the concurrency and recovery choices reserved here; the current interpreter pin remains 3.11 until the separate migration.
+
 ## Problem Statement
 
 Two students must implement and explain a parallel OCR pipeline for CSC611M Machine Project 1. The initiating teammate needs to prepare the repository so both teammates can contribute independently, without consuming the substantive implementation work intended for Imman. Both teammates use native Windows.
