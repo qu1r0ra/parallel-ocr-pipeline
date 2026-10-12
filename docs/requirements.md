@@ -20,7 +20,7 @@ speedup(n) = total elapsed time with 1 worker / total elapsed time with n worker
 
 Record the tested machine, software versions, worker count, total runtime, and relevant native OCR concurrency settings. Use repeated comparable runs to identify the best measured configuration; do not treat the per-image timing sum as total runtime when workers overlap.
 
-The implementation plan defines per-image processing time as preprocessing plus OCR after a worker dequeues an image, excluding queue wait. For comparable end-to-end runs, begin timing immediately before loading starts and stop after all workers have finished and the CSV has been closed. Keep these boundaries constant across worker counts.
+The accepted [concurrency design](concurrency-design.md) defines per-image processing time as preprocessing plus all OCR attempts after dequeue, excluding loading, queue wait, and output-lock wait. For comparable end-to-end runs, begin timing immediately before thread startup/loading and stop after all threads finish, streams close, and output is published. Compare complete successful runs with the same workload and recovery policy; keep these boundaries constant across worker counts.
 
 ## Submission and grading
 
