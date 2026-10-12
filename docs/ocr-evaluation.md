@@ -11,6 +11,8 @@
 | Language | `eng` | |
 | Timeout | 30 s per Tesseract attempt | Constructor argument `timeout`; must be positive. Normal calls take well under a second, so the limit only bounds hangs. |
 
+Build one recognizer per process and share it among workers.
+
 `pytesseract` reads the executable from a module attribute and the model directory from `TESSDATA_PREFIX`, so both are process-wide and the most recently constructed recognizer wins. The model directory uses `TESSDATA_PREFIX` instead of `--tessdata-dir` because `pytesseract` cannot pass a quoted path containing spaces on Windows (the option keeps literal quote characters). Tesseract runs as a separate process; set `OMP_THREAD_LIMIT=1` for pipeline benchmarks per the [concurrency design](concurrency-design.md).
 
 ## Failures
@@ -20,7 +22,7 @@
 | Exception | Meaning | Pipeline treatment |
 |---|---|---|
 | `RecognitionTimeoutError` | Tesseract exceeded the timeout; the process is killed. | Transient: one retry allowed. |
-| `RecognitionFailedError` | Tesseract exited non-zero for this image. | Terminal for that image. |
+| `RecognitionFailedError` | Tesseract exited non-zero, or failed to run, for this image (including temp-file I/O errors). | Terminal for that image. |
 | `PrerequisiteError` | Executable missing/unstartable, or the model cannot be loaded. | Global failure: stop the run. |
 
 The timeout is detected from `pytesseract`'s `RuntimeError("Tesseract process timeout")`, and model failures from Tesseract's stderr text; both depend on pinned `pytesseract` 0.3.13 and Tesseract 5.4 wording.
@@ -72,3 +74,7 @@ just test                                                # behavioral tests (rea
 ```
 
 `just evaluate --verbose` lists every image. Both commands accept `--executable`, `--tessdata-dir`, and `--timeout`.
+
+## Python 3.15.0
+
+Verified only on the current Python 3.11 scaffold. The code uses no 3.11-specific features; the interpreter migration and the joint 3.15.0 verification (Pillow 12.3.0, pytesseract 0.3.13, real Tesseract call) belong to #5 and #6.

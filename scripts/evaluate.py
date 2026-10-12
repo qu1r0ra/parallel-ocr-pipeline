@@ -23,6 +23,7 @@ from parallel_ocr_pipeline.recognizer import (
     TesseractRecognizer,
 )
 
+EXPECTED_IMAGE_COUNT = 100
 DATASET = Path(__file__).resolve().parents[1] / "local-assets" / "dataset"
 
 
@@ -36,6 +37,14 @@ def main() -> int:
     arguments = parser.parse_args()
 
     labels = read_labels(arguments.dataset / "labels.txt")
+    missing = [name for name in labels if not (arguments.dataset / "images" / name).is_file()]
+    if len(labels) != EXPECTED_IMAGE_COUNT or missing:
+        print(
+            f"Cannot evaluate: expected {EXPECTED_IMAGE_COUNT} labelled images, found "
+            f"{len(labels)} labels and {len(missing)} missing image files.",
+            file=sys.stderr,
+        )
+        return 2
     recognizer = TesseractRecognizer(
         tessdata_dir=arguments.tessdata_dir,
         executable=arguments.executable,

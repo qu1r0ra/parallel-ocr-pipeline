@@ -151,3 +151,12 @@ def test_real_tesseract_timeout_is_a_transient_failure_and_retryable() -> None:
 def test_timeout_is_distinguishable_from_prerequisite_failure() -> None:
     assert not issubclass(RecognitionTimeoutError, PrerequisiteError)
     assert not issubclass(RecognitionTimeoutError, RecognitionFailedError)
+
+
+@requires_real_ocr
+def test_successful_call_releases_temporary_files(
+    recognizer: TesseractRecognizer, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+    recognizer.recognize(render_word("grape"))
+    assert list(tmp_path.iterdir()) == []

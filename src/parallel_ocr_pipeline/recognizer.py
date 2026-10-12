@@ -147,13 +147,14 @@ class TesseractRecognizer:
                 f"Tesseract exited with status {error.status}: {message}"
             ) from error
         except OSError as error:
-            raise PrerequisiteError(
-                f"Tesseract executable could not be started: {self._executable!r}: {error}"
+            # Not a missing executable: may be temp-file I/O for this image, so stay per-image.
+            raise RecognitionFailedError(
+                f"Tesseract could not run on this image: {error}"
             ) from error
         except RuntimeError as error:
             if str(error) == _PYTESSERACT_TIMEOUT_MESSAGE:
                 raise RecognitionTimeoutError(
                     f"Tesseract exceeded {self._timeout} seconds"
                 ) from error
-            raise
+            raise RecognitionFailedError(f"Tesseract failed: {error}") from error
         return text.strip()
