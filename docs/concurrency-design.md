@@ -13,7 +13,7 @@
 | Success | Publish `ocr_results.csv` only when every input succeeds; preserve the previous successful CSV until replacement succeeds. |
 | Image failures | Save successful rows as `ocr_results.partial.csv`, write a separate failure report, and exit 1. |
 | Empty input | Empty or image-less input is a configuration error, exit 2. |
-| Python | Standard CPython 3.15.0 on both Windows machines; migrate the 3.11 scaffold separately. |
+| Python | Standard CPython 3.15.0 on both Windows machines. |
 
 The professor confirmed that any Python standard-library concurrency or synchronization primitive is permitted; OCR and image libraries may be third-party. A custom monitor is unnecessary for course coverage. `queue.Queue` directly implements bounded producer-consumer handoff; the students still explain backpressure, output locking, ownership, recovery, and termination.
 
@@ -103,6 +103,6 @@ Use `run(config_path, recognizer=None) -> int` as the complete-app seam. A deter
 
 Verify complete output/unique IDs with one and several workers; filename association; CSV punctuation/newline escaping; observed overlap; invalid/empty input; successful retry without duplicate rows; exhausted failures while later images still succeed; corrupt images without retry; failure-report contents; old-output preservation; global output errors; cancellation with a full queue; thread termination; and image cleanup after failed enqueue, retry, processing, and stopping.
 
-Before implementing queue shutdown, migrate `.python-version`, project requirements, Ruff/basedpyright targets, setup/handoff instructions, and `uv.lock` to 3.15.0. Verify locked installation, tooling, Pillow imports, and a real Tesseract call on both Windows machines. Python 3.15.0 is the [stable release](https://www.python.org/downloads/release/python-3150/). [Pillow 12.3.0](https://pypi.org/project/pillow/) publishes a standard Windows x64 `cp315` wheel; [pytesseract 0.3.13](https://pypi.org/project/pytesseract/) publishes a universal Python wheel. Availability supports the target but does not replace runtime checks.
+The project requirements, lockfile, Ruff/basedpyright targets, and setup instructions now target Python 3.15. Verify the locked installation, tooling, Pillow imports, and a real Tesseract call on both Windows machines. Python 3.15.0 is the [stable release](https://www.python.org/downloads/release/python-3150/). [Pillow 12.3.0](https://pypi.org/project/pillow/) publishes a standard Windows x64 `cp315` wheel; [pytesseract 0.3.13](https://pypi.org/project/pytesseract/) publishes a universal Python wheel. Availability supports the target but does not replace runtime checks.
 
 The [OCR contract](ocr-contract.md) remains the independent implementation seam. This accepted design supplies the owner-controlled decisions for #5; interpreter migration and substantive OCR/pipeline code are follow-on work.

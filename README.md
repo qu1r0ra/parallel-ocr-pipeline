@@ -24,7 +24,7 @@ A native Windows development scaffold for CSC611M Machine Project 1. It defines 
    just verify
    ```
 
-The setup task installs the uv-managed Python 3.11 interpreter and creates the project `.venv` from the committed lockfile. See [`docs/setup-windows.md`](docs/setup-windows.md) for the component distinctions and troubleshooting.
+The setup task installs the uv-managed Python 3.15 interpreter and creates the project `.venv` from the committed lockfile. See [`docs/setup-windows.md`](docs/setup-windows.md) for the component distinctions and troubleshooting.
 
 ## Useful files
 

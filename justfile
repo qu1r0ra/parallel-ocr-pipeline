@@ -5,7 +5,7 @@ default:
 
 # Install the pinned interpreter, project, development tools, and commit hooks.
 setup:
-    uv python install 3.11
+    uv python install 3.15
     uv sync --locked --all-groups
     uv run --no-sync pre-commit install
 

@@ -12,8 +12,8 @@ The ownership split leaves both students with substantial implementation work wh
 
 ## Next steps
 
-1. Both teammates set up the same Python 3.11 lockfile and prepare matching local dataset and model files. Run `just check-environment` on each machine.
-2. Follow the accepted [concurrency and shutdown design](concurrency-design.md) from [issue #3](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3): threads, bounded `queue.Queue`, locked CSV writes, bounded per-image recovery, and distinguishable partial output. Migrate both environments and the lockfile to the agreed Python 3.15.0 target before implementing queue shutdown; step 1 describes the current scaffold.
+1. Both teammates set up the same Python 3.15 lockfile and prepare matching local dataset and model files. Run `just check-environment` on each machine.
+2. Follow the accepted [concurrency and shutdown design](concurrency-design.md) from [issue #3](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3): threads, bounded `queue.Queue`, locked CSV writes, bounded per-image recovery, and distinguishable partial output.
 3. Quirora implements and evaluates the standalone image recognizer in [issue #4](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/4).
 4. Imman implements the configured parallel pipeline in [issue #5](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/5), using the agreed design and the OCR contract.
 5. Integrate, verify real recognition and failure behavior, benchmark comparable worker counts, and prepare the CSV and slides in the later validation and submission issues.

@@ -1,6 +1,6 @@
 # Windows setup
 
-The project targets native Windows with Python 3.11. `uv` manages a project-local `.venv` and installs the exact dependency set from `uv.lock`; it can install the required Python version without a separate system Python installation. Install `just` to discover and run the repository tasks. The recipes use the Windows PowerShell shell included with Windows; PowerShell 7 is optional.
+The project targets native Windows with Python 3.15. `uv` manages a project-local `.venv` and installs the exact dependency set from `uv.lock`; it can install the required Python version without a separate system Python installation. Use a current `uv` release that supports Python 3.15. Install `just` to discover and run the repository tasks. The recipes use the Windows PowerShell shell included with Windows; PowerShell 7 is optional.
 
 ## Three separate OCR prerequisites
 
@@ -24,7 +24,9 @@ just prepare-assets
 just check-environment
 ```
 
-`just setup` installs Python 3.11 through uv, synchronizes locked application and development dependencies, and installs the fast pre-commit hooks. `just prepare-assets` reads `local-assets/supplied/dataset.zip`; it never extracts AppleDouble metadata or the labels file into the image directory. `just check-environment` verifies Python, Python packages, Tesseract, the supplied model, and the local dataset, and prints a next step for anything missing.
+`just setup` installs Python 3.15 through uv, synchronizes locked application and development dependencies, and installs the fast pre-commit hooks. Run the commands from the repository root; you do not need to activate `.venv` manually. `just prepare-assets` reads `local-assets/supplied/dataset.zip`; it never extracts AppleDouble metadata or the labels file into the image directory. `just check-environment` verifies Python, Python packages, Tesseract, the supplied model, and the local dataset, and prints a next step for anything missing.
+
+If `uv python install 3.15` reports that no Python download is available, check `uv --version` and `where.exe uv` for an older `uv` earlier on `PATH`; update `uv` or ensure the current installation is the one your terminal runs.
 
 ## Quality tasks
 

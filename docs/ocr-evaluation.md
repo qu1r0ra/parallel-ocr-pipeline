@@ -77,4 +77,4 @@ just test                                                # behavioral tests (rea
 
 ## Python 3.15.0
 
-Verified only on the current Python 3.11 scaffold. The code uses no 3.11-specific features; the interpreter migration and the joint 3.15.0 verification (Pillow 12.3.0, pytesseract 0.3.13, real Tesseract call) belong to #5 and #6.
+The project now targets Python 3.15. The accuracy result above was measured on Python 3.11; rerun the real OCR evaluation on Python 3.15 before treating that result as verified for the current target.

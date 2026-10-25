@@ -28,4 +28,4 @@ Per-image processing time covers preprocessing and all OCR attempts after dequeu
 
 The future pipeline reads `image_dir` and `n_workers` from `config.txt`; `n_workers` excludes the loader. [`config.example.txt`](../config.example.txt) shows the agreed shape.
 
-Use only Python standard-library concurrency and synchronization: explicitly created threads, a bounded `queue.Queue`, an output `Lock`, and an `Event` for global stopping. The accepted design targets Python 3.15.0; the current Python 3.11 scaffold must be migrated before using `Queue.shutdown()`.
+Use only Python standard-library concurrency and synchronization: explicitly created threads, a bounded `queue.Queue`, an output `Lock`, and an `Event` for global stopping. The project targets Python 3.15.0, including for `Queue.shutdown()`.
