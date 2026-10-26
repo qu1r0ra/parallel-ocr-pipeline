@@ -1,6 +1,6 @@
 # Integrated OCR validation
 
-This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6). The cross-machine acceptance check remains open until Imman records the same setup and real-OCR run on his Windows machine. The timings below are single acceptance runs, not benchmark measurements for #7.
+This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6). The project owner completed this acceptance on their Windows machine. Per the project decision, a second-host run is optional follow-up and does not block issue #6. The timings below are single acceptance runs, not benchmark measurements for #7.
 
 ## Local environment
 
@@ -47,7 +47,7 @@ Hang-sensitive shutdown cases run in subprocesses with 15-second limits. The OCR
 
 ## Reproduce the check
 
-On each Windows host, install the locked environment and verify the local prerequisites:
+To reproduce these results on another Windows host, install the locked environment and verify the local prerequisites:
 
 ```powershell
 uv sync --locked --all-groups
@@ -84,4 +84,4 @@ just pipeline results/integration/workers-4/config.txt
 just evaluate-pipeline results/integration/workers-4/ocr_results.csv
 ```
 
-Keep each config in its own directory because the pipeline writes output beside the config. Record Windows, Python, Pillow, pytesseract, and Tesseract versions, both standalone and pipeline accuracy/exact-match results, and any setup limitations. Share the output with the other teammate for review; no course submission is performed by these checks.
+Keep each config in its own directory because the pipeline writes output beside the config. Record Windows, Python, Pillow, pytesseract, and Tesseract versions, both standalone and pipeline accuracy/exact-match results, and any setup limitations. For a cross-machine comparison, share the output with the other teammate. No course submission is performed by these checks.

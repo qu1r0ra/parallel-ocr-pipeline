@@ -12,9 +12,9 @@ The ownership split leaves both students with substantial implementation work wh
 
 ## Next steps
 
-1. Both teammates use the shared Python 3.15 lockfile and keep local copies of the dataset and supplied model. Run `just check-environment` and `just verify` on each Windows machine.
+1. Use the shared Python 3.15 lockfile and keep local copies of the dataset and supplied model. The issue #6 acceptance checks passed on Quirora's Windows machine; another host can be checked for additional comparison.
 2. The issue #5 pipeline is merged to `main`. Use `just evaluate` for standalone recognition, `just pipeline` for a configured run, and `just evaluate-pipeline` to score a complete pipeline CSV with the same metric.
-3. Finish [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6) by recording the collaborator's standalone and pipeline scores and reviewing setup or OCR differences against the [local integration evidence](integrated-validation.md).
+3. [Issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6) is validated on Quirora's Windows machine. A collaborator run is optional follow-up; use the [local integration evidence](integrated-validation.md) to compare setup or OCR results if one is performed.
 4. Then complete the repeated worker-count measurements and recovery metadata in [benchmark results](benchmark-results.md). Discuss variability and bottlenecks with both teammates and agree on a defensible worker-count recommendation.
 5. Jointly prepare and review the submission artifacts: a clean source ZIP, a verified complete 100-image CSV, and the PowerPoint covering the design, recovery/shutdown behavior, and benchmark evidence. Keep the November 5, 2026, 10:00 AM Asia/Manila deadline in view; coursework submission remains a human action.
 
