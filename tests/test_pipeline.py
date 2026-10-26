@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sys
+import textwrap
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -391,70 +392,115 @@ def test_run_preserves_complete_output_and_publishes_partial_after_output_error(
     assert failures[0]["message"] == "complete output is read-only"
 
 
-def test_run_publishes_only_partial_artifacts_when_interrupted(
+def test_run_cancels_with_a_full_queue_and_closes_queued_images(
     tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
 ) -> None:
-    """SIGINT stops the run, joins its threads, and leaves prior complete output intact."""
-    script = f"""
-        import csv
+    """Cancel at a deterministic full-queue point and bound shutdown with a subprocess timeout."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    for index in range(8):
+        pipeline_image_writer(image_dir / f"{index:02}.png", index)
+    _write_config(tmp_path, image_dir, n_workers=1)
+    previous = tmp_path / "ocr_results.csv"
+    previous.write_text("previous complete run\n", encoding="utf-8")
+    script = textwrap.dedent(
+        f"""
         import json
         import signal
         import threading
-        import time
         from pathlib import Path
         from PIL import Image
         from parallel_ocr_pipeline.pipeline import run
 
         root = Path({str(tmp_path)!r})
-        image_dir = root / "images"
-        image_dir.mkdir()
-        for index in range(8):
-            image = Image.new("RGB", (2, 2), (index, 0, 0))
-            image.save(image_dir / f"{{index:02}}.png")
-            image.close()
-        config = root / "config.txt"
-        config.write_text(
-            f"image_dir={{image_dir}}" + chr(10) + "n_workers=2" + chr(10),
-            encoding="utf-8",
-        )
         previous = root / "ocr_results.csv"
-        previous.write_text("previous complete run" + chr(10), encoding="utf-8")
-        active = []
-        active_lock = threading.Lock()
+        recognizer_started = threading.Event()
+        release_recognizer = threading.Event()
+        queue_full_observed = threading.Event()
+        release_loader = threading.Event()
+        detached_images = []
+        worker_threads = []
+        open_count = [0]
+        open_lock = threading.Lock()
+        original_open = Image.open
+        original_copy = Image.Image.copy
 
         class SlowRecognizer:
             def recognize(self, image, /):
-                with active_lock:
-                    active.append(image)
-                time.sleep(1.0)
+                worker_threads.append(threading.current_thread())
+                recognizer_started.set()
+                if not release_recognizer.wait(timeout=5):
+                    raise TimeoutError("Test did not release the active recognition.")
                 return "recognized"
 
-        timer = threading.Timer(0.7, lambda: signal.raise_signal(signal.SIGINT))
-        timer.start()
-        status = run(config, SlowRecognizer())
-        timer.join()
-        active_images_closed = True
-        for image in active:
+        def tracked_open(file, *args, **kwargs):
+            source = original_open(file, *args, **kwargs)
+            with open_lock:
+                open_count[0] += 1
+                current_open = open_count[0]
+            if current_open == 2 and not recognizer_started.wait(timeout=5):
+                raise TimeoutError("The first image never reached the recognizer.")
+            if current_open == 4:
+                # One image is active and the two-slot queue is full; the loader has begun
+                # loading a fourth image and cannot enqueue it until shutdown is requested.
+                queue_full_observed.set()
+                if not release_loader.wait(timeout=5):
+                    raise TimeoutError("Test did not release the blocked loader.")
+            return source
+
+        def tracked_copy(image):
+            detached = original_copy(image)
+            detached_images.append(detached)
+            return detached
+
+        def interrupt(signum, frame):
+            release_loader.set()
+            release_recognizer.set()
+            raise KeyboardInterrupt
+
+        Image.open = tracked_open
+        Image.Image.copy = tracked_copy
+        signal.signal(signal.SIGINT, interrupt)
+
+        def cancel_when_queue_is_full():
+            queue_full_observed.wait(timeout=5)
+            signal.raise_signal(signal.SIGINT)
+
+        canceller = threading.Thread(target=cancel_when_queue_is_full)
+        canceller.start()
+        status = run(root / "config.txt", SlowRecognizer())
+        canceller.join(timeout=5)
+        detached_images_closed = True
+        for image in detached_images:
             try:
                 image.getpixel((0, 0))
-                active_images_closed = False
+                detached_images_closed = False
             except ValueError:
                 pass
+        worker_threads_joined = bool(worker_threads) and all(
+            not thread.is_alive() for thread in worker_threads
+        )
         print(json.dumps({{
             "status": status,
             "old_output": previous.read_text(encoding="utf-8"),
             "partial_exists": (root / "ocr_results.partial.csv").is_file(),
             "failure_exists": (root / "ocr_failures.csv").is_file(),
-            "recognized_count": len(active),
-            "active_images_closed": active_images_closed,
+            "queue_full_observed": queue_full_observed.is_set(),
+            "loaded_count": len(detached_images),
+            "detached_images_closed": detached_images_closed,
+            "worker_threads_joined": worker_threads_joined,
+            "canceller_joined": not canceller.is_alive(),
         }}))
-    """
+        """
+    )
 
     completed = subprocess.run(
         [sys.executable, "-c", script],
+        cwd=Path(__file__).resolve().parents[1],
         capture_output=True,
         text=True,
-        timeout=20,
+        timeout=15,
         check=False,
     )
 
@@ -465,6 +511,9 @@ def test_run_publishes_only_partial_artifacts_when_interrupted(
         "old_output": "previous complete run\n",
         "partial_exists": True,
         "failure_exists": True,
-        "recognized_count": 2,
-        "active_images_closed": True,
+        "queue_full_observed": True,
+        "loaded_count": 4,
+        "detached_images_closed": True,
+        "worker_threads_joined": True,
+        "canceller_joined": True,
     }
