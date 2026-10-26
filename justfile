@@ -51,6 +51,10 @@ run path *args:
 pipeline config="config.txt":
     uv run --no-sync python scripts/run_pipeline.py "{{config}}"
 
+# Compare one, two, and four pipeline workers using the root config's image directory.
+benchmark:
+    uv run --no-sync python scripts/benchmark_pipeline.py
+
 # Recognize one image with the real Tesseract recognizer.
 recognize path *args:
     uv run --no-sync python scripts/recognize.py "{{path}}" {{args}}

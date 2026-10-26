@@ -229,6 +229,13 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
     started_threads: list[threading.Thread] = []
     workers: list[threading.Thread] = []
     cancelled = False
+    run_started_ns: int | None = None
+
+    def report_total_time() -> None:
+        if run_started_ns is not None:
+            elapsed_seconds = (perf_counter_ns() - run_started_ns) / 1_000_000_000
+            print(f"Total processing time: {elapsed_seconds:.3f} seconds")
+
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -249,6 +256,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                 )
                 for _ in range(config.n_workers)
             ]
+            run_started_ns = perf_counter_ns()
             for thread in [*workers, loader_thread]:
                 thread.start()
                 started_threads.append(thread)
@@ -366,6 +374,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
             if failure_temporary_path is not None:
                 _remove_temporary_file(failure_temporary_path)
 
+        report_total_time()
         if global_error is not None:
             print(
                 f"Pipeline stopped: {type(global_error).__name__}: {global_error}. "
@@ -426,6 +435,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
             _remove_temporary_file(temporary_path)
             if output_error_report_path is not None:
                 _remove_temporary_file(output_error_report_path)
+        report_total_time()
         if temporary_path is None:
             print(
                 f"Could not publish complete OCR results: {error}. "
@@ -434,6 +444,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
             )
         return 1
     temporary_path = None
+    report_total_time()
     stale_artifact_errors: list[OSError] = []
     for artifact in (
         config_file.parent / "ocr_results.partial.csv",

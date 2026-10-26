@@ -96,7 +96,8 @@ The recognizer has a per-attempt Tesseract timeout. This bounds Tesseract calls,
 
 - Per-image time uses `time.perf_counter()` and includes preprocessing and all recognition attempts. It excludes loading, queue wait, and output-lock wait.
 - Total time starts immediately before thread startup/loading and ends after joins, stream closing, and output publication. It includes loading, retries, coordination, and output. Configuration validation and enumeration are outside it.
-- Set `OMP_THREAD_LIMIT=1` by default and record it. Keep dataset, retry policy, OCR timeout, model, preprocessing, and timer boundaries constant across worker counts.
+- The CLI prints the total time after publication. The benchmark command sets `OMP_THREAD_LIMIT=1` only in its OCR subprocesses and records it; it does not change the user's environment.
+- Keep dataset, retry policy, OCR timeout, model, preprocessing, and timer boundaries constant across worker counts.
 - Compute speedup from repeated complete successful runs. Report incomplete runs separately. Real OCR quality and performance belong to OCR/benchmark work, not lightweight correctness tests.
 
 ## Verification and implementation handoff

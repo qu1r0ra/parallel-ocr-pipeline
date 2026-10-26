@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -114,6 +115,23 @@ def _is_closed(image: Image.Image) -> bool:
     with pytest.raises(ValueError):
         image.getpixel((0, 0))
     return True
+
+
+def test_run_reports_total_processing_time_after_publication(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Report full-run elapsed time separately from per-image CSV timings."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    config_path = _write_config(tmp_path, image_dir)
+
+    assert run(config_path, ScriptedRecognizer({1: ["recognized"]})) == 0
+
+    assert re.search(r"Total processing time: [0-9]+\.[0-9]{3} seconds", capsys.readouterr().out)
+    assert (tmp_path / "ocr_results.csv").is_file()
 
 
 def test_run_retries_timed_out_recognition_and_accepts_empty_text(
