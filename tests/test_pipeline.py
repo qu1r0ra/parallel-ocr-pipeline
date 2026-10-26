@@ -517,3 +517,114 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
         "worker_threads_joined": True,
         "canceller_joined": True,
     }
+
+
+def test_run_cancels_during_startup_without_losing_active_results_or_leaking_threads(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+) -> None:
+    """An interrupted start still joins its thread before closing shared output."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    pipeline_image_writer(image_dir / "beta.png", 2)
+    _write_config(tmp_path, image_dir)
+    (tmp_path / "ocr_results.csv").write_text("previous complete run\n", encoding="utf-8")
+    script = textwrap.dedent(
+        f"""
+        import csv
+        import json
+        import threading
+        from pathlib import Path
+        from PIL import Image
+        from parallel_ocr_pipeline.pipeline import run
+
+        root = Path({str(tmp_path)!r})
+        active = threading.Event()
+        loading = threading.Event()
+        release_recognizer = threading.Event()
+        release_loader = threading.Event()
+        started = []
+        recognized_images = []
+        original_start = threading.Thread.start
+        original_join = threading.Thread.join
+        original_open = Image.open
+
+        class SlowRecognizer:
+            def recognize(self, image, /):
+                recognized_images.append(image)
+                active.set()
+                if not release_recognizer.wait(5):
+                    raise TimeoutError("Active recognition was never joined.")
+                return "recognized"
+
+        def blocked_open(file, *args, **kwargs):
+            if Path(file).name == "beta.png":
+                loading.set()
+                if not release_loader.wait(5):
+                    raise TimeoutError("Active loader was never joined.")
+            return original_open(file, *args, **kwargs)
+
+        def interrupted_start(thread):
+            original_start(thread)
+            started.append(thread)
+            if len(started) == 2:
+                assert active.wait(5) and loading.wait(5)
+                raise KeyboardInterrupt
+
+        def releasing_join(thread, *args, **kwargs):
+            # Hold active work until cleanup joins its owning OS thread.
+            if thread is started[0]:
+                release_recognizer.set()
+            else:
+                release_loader.set()
+            return original_join(thread, *args, **kwargs)
+
+        Image.open = blocked_open
+        threading.Thread.start = interrupted_start
+        threading.Thread.join = releasing_join
+        try:
+            status = run(root / "config.txt", SlowRecognizer())
+            joined = all(not thread.is_alive() for thread in started)
+            images_closed = True
+            for image in recognized_images:
+                try:
+                    image.getpixel((0, 0))
+                    images_closed = False
+                except ValueError:
+                    pass
+        finally:
+            release_recognizer.set()
+            release_loader.set()
+            for thread in started:
+                original_join(thread, timeout=5)
+        with (root / "ocr_results.partial.csv").open(newline="", encoding="utf-8") as stream:
+            partial = list(csv.DictReader(stream))
+        with (root / "ocr_failures.csv").open(newline="", encoding="utf-8") as stream:
+            failures = list(csv.DictReader(stream))
+        print(json.dumps({{
+            "status": status,
+            "joined": joined,
+            "images_closed": images_closed,
+            "old_output": (root / "ocr_results.csv").read_text(encoding="utf-8"),
+            "partial": [(row["filename"], row["text"]) for row in partial],
+            "errors": [row["exception_type"] for row in failures],
+        }}))
+        """
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout.splitlines()[-1]) == {
+        "status": 130,
+        "joined": True,
+        "images_closed": True,
+        "old_output": "previous complete run\n",
+        "partial": [["alpha.png", "recognized"]],
+        "errors": ["KeyboardInterrupt", "NotProcessedError"],
+    }

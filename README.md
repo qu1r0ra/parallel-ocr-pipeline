@@ -57,6 +57,8 @@ The pipeline writes results beside the config file:
 
 The command prints total processing time from thread startup through output publication. Exit status `0` means success, `1` means a runtime or image failure, `2` means invalid configuration or input, and `130` means the run was cancelled with Ctrl+C.
 
+The pipeline defaults Tesseract's native thread limit (`OMP_THREAD_LIMIT`) to `1`, so Python workers control the parallelism. An explicit environment value overrides this default.
+
 ## Verify and benchmark
 
 `just test tests/test_pipeline.py` runs deterministic pipeline tests without Tesseract. For real OCR, install Tesseract, prepare the model and images, then run `just check-environment` and `just pipeline`. `just recognize <image>` and `just evaluate` remain separate OCR tools; the evaluator measures recognition quality against the labels.

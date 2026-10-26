@@ -49,6 +49,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
     config_file = Path(config_path).expanduser().resolve()
     config = load_config(config_file)
     inputs = enumerate_images(config.image_dir)
+    os.environ.setdefault("OMP_THREAD_LIMIT", "1")
     chosen_recognizer = recognizer if recognizer is not None else TesseractRecognizer()
     output_path = config_file.parent / "ocr_results.csv"
     # Shared object queue
@@ -257,10 +258,17 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                 for _ in range(config.n_workers)
             ]
             run_started_ns = perf_counter_ns()
-            for thread in [*workers, loader_thread]:
-                thread.start()
-                started_threads.append(thread)
-            cancelled = _join_threads(started_threads, request_stop)
+            try:
+                for thread in [*workers, loader_thread]:
+                    # Track the attempt first: start() can be interrupted after launching.
+                    started_threads.append(thread)
+                    thread.start()
+            except BaseException:
+                request_stop()
+                raise
+            finally:
+                # Workers own this stream until all active threads have finished.
+                cancelled = _join_threads(started_threads, request_stop) or cancelled
             stream.flush()
     except KeyboardInterrupt:
         cancelled = True

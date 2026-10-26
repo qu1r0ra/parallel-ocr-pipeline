@@ -90,13 +90,15 @@ For cancellation or a global failure, set the stop event and call graceful `shut
 
 Main joins all non-daemon threads in timed `join()` loops so Ctrl+C remains responsive on Windows. A caught Ctrl+C requests shutdown, then waits for active work to finish before writing partial artifacts and returning 130. Thread-entry exception handlers record global failures and request shutdown, preventing silent worker death. Main drains and closes any remaining jobs after joins. Completion is verified from joined threads and outcome accounting, rather than relying on queue emptiness or `Queue.join()`.
 
+Thread startup attempts are recorded before calling `start()`, since an interrupt can arrive after a thread launches. Startup cleanup joins active threads while the shared CSV stream is still open, so an in-flight recognition can retain its completed row in partial output.
+
 The recognizer has a per-attempt Tesseract timeout. This bounds Tesseract calls, not arbitrary file I/O or an injected recognizer; do not claim a universal runtime bound from that timeout.
 
 ## Timing and benchmarks
 
 - Per-image time uses `time.perf_counter()` and includes preprocessing and all recognition attempts. It excludes loading, queue wait, and output-lock wait.
 - Total time starts immediately before thread startup/loading and ends after joins, stream closing, and output publication. It includes loading, retries, coordination, and output. Configuration validation and enumeration are outside it.
-- The CLI prints the total time after publication. The benchmark command sets `OMP_THREAD_LIMIT=1` only in its OCR subprocesses and records it; it does not change the user's environment.
+- The CLI prints the total time after publication. The pipeline defaults `OMP_THREAD_LIMIT` to `1` in its process before creating the recognizer, preserving any explicit environment override. OCR subprocesses inherit this setting. The benchmark command always pins it to `1` in its child processes for comparable measurements; neither command changes the invoking shell's environment.
 - Keep dataset, retry policy, OCR timeout, model, preprocessing, and timer boundaries constant across worker counts.
 - Compute speedup from repeated complete successful runs. Report incomplete runs separately. Real OCR quality and performance belong to OCR/benchmark work, not lightweight correctness tests.
 
@@ -104,7 +106,7 @@ The recognizer has a per-attempt Tesseract timeout. This bounds Tesseract calls,
 
 Use `run(config_path, recognizer=None) -> int` as the complete-app seam. A deterministic substitute recognizer derives text from image contents, records overlap, and can fail once or persistently. Run hang-sensitive cases in subprocesses with timeouts and terminate on expiry; a watchdog thread cannot terminate hung non-daemon workers.
 
-Verify complete output/unique IDs with one and several workers; filename association; CSV punctuation/newline escaping; observed overlap; invalid/empty input; successful retry without duplicate rows; exhausted failures while later images still succeed; corrupt images without retry; failure-report contents; old-output preservation; global output errors; cancellation with a full queue; thread termination; and image cleanup after failed enqueue, retry, processing, and stopping.
+Verify complete output/unique IDs with one and several workers; filename association; CSV punctuation/newline escaping; observed overlap; invalid/empty input; successful retry without duplicate rows; exhausted failures while later images still succeed; corrupt images without retry; failure-report contents; old-output preservation; global output errors; cancellation with a full queue and during thread startup; thread termination; and image cleanup after failed enqueue, retry, processing, and stopping. At the CLI boundary, verify that OCR subprocesses inherit the native thread default and explicit overrides.
 
 The project requirements, lockfile, Ruff/basedpyright targets, and setup instructions now target Python 3.15. Verify the locked installation, tooling, Pillow imports, and a real Tesseract call on both Windows machines. Python 3.15.0 is the [stable release](https://www.python.org/downloads/release/python-3150/). [Pillow 12.3.0](https://pypi.org/project/pillow/) publishes a standard Windows x64 `cp315` wheel; [pytesseract 0.3.13](https://pypi.org/project/pytesseract/) publishes a universal Python wheel. Availability supports the target but does not replace runtime checks.
 

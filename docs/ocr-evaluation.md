@@ -13,7 +13,7 @@
 
 Build one recognizer per process and share it among workers.
 
-`pytesseract` reads the executable from a module attribute and the model directory from `TESSDATA_PREFIX`, so both are process-wide and the most recently constructed recognizer wins. The model directory uses `TESSDATA_PREFIX` instead of `--tessdata-dir` because `pytesseract` cannot pass a quoted path containing spaces on Windows (the option keeps literal quote characters). Tesseract runs as a separate process; set `OMP_THREAD_LIMIT=1` for pipeline benchmarks per the [concurrency design](concurrency-design.md).
+`pytesseract` reads the executable from a module attribute and the model directory from `TESSDATA_PREFIX`, so both are process-wide and the most recently constructed recognizer wins. The model directory uses `TESSDATA_PREFIX` instead of `--tessdata-dir` because `pytesseract` cannot pass a quoted path containing spaces on Windows (the option keeps literal quote characters). Tesseract runs as a separate process. The pipeline defaults `OMP_THREAD_LIMIT` to `1` while preserving explicit overrides; the benchmark pins it to `1` per the [concurrency design](concurrency-design.md). Standalone recognizer and evaluator commands inherit the caller's environment.
 
 ## Failures
 

@@ -50,10 +50,12 @@ def test_cli_reports_invalid_config_with_status_two(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the fake Tesseract executable is a Windows .cmd file")
-def test_cli_runs_configured_pipeline_from_default_config(
+@pytest.mark.parametrize("native_limit", [None, "3"])
+def test_cli_runs_default_config_with_native_thread_default_or_explicit_override(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],
     monkeypatch: pytest.MonkeyPatch,
+    native_limit: str | None,
 ) -> None:
     image_dir = tmp_path / "images"
     image_dir.mkdir()
@@ -62,8 +64,12 @@ def test_cli_runs_configured_pipeline_from_default_config(
         f"image_dir={image_dir}\nn_workers=1\n",
         encoding="utf-8",
     )
-    executable = fake_tesseract(tmp_path, 'echo recognized text> "%~2.txt"')
+    executable = fake_tesseract(tmp_path, '> "%~2.txt" echo native threads=%OMP_THREAD_LIMIT%')
     monkeypatch.setenv("TESSERACT_CMD", str(executable))
+    if native_limit is None:
+        monkeypatch.delenv("OMP_THREAD_LIMIT", raising=False)
+    else:
+        monkeypatch.setenv("OMP_THREAD_LIMIT", native_limit)
 
     completed = subprocess.run(
         [sys.executable, str(SCRIPT)],
@@ -78,5 +84,5 @@ def test_cli_runs_configured_pipeline_from_default_config(
     with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
-        ("1", "sample.png", "recognized text")
+        ("1", "sample.png", f"native threads={native_limit or '1'}")
     ]
