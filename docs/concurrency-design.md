@@ -68,9 +68,9 @@ The loader fully loads and detaches each image before enqueueing `(id, filename,
 Workers write successful rows to a temporary CSV with a header and correct `csv` escaping. Each row contains ID, filename, extracted text, and processing milliseconds. Main closes streams after joining every thread, then checks accounting and publishes output.
 
 - **Success:** loader finished, all threads terminated, no terminal image failures or fatal error, and exactly N unique successful identities. Use `os.replace` from a temporary file in the destination directory to publish `ocr_results.csv`. Exit 0 only after publication succeeds.
-- **Terminal image failures:** every candidate has either a successful row or a terminal failure record, without duplicates. Publish successful rows as `ocr_results.partial.csv` and failures as `ocr_failures.csv`. Exit 1. Diagnostics give counts and state that any existing `ocr_results.csv` belongs to a previous successful run.
-- **Global failure/cancellation:** stop further processing and join threads. Preserve completed rows as partial output when storage remains writable. Diagnostics distinguish failures and unprocessed images; storage errors may prevent saving artifacts. Preserve previous successful output.
-- Replace the current partial/failure artifacts on an unsuccessful run when writable. Successful publication clears obsolete partial/failure artifacts; report cleanup errors rather than silently implying that stale artifacts are current.
+- **Terminal image failures:** every candidate has either a successful row or a terminal failure record, without duplicates. Publish successful rows as `ocr_results.partial.csv` and failures as `ocr_failures.csv`. Return 1. Diagnostics give counts and state that any existing `ocr_results.csv` belongs to a previous successful run.
+- **Global failure/cancellation:** stop further processing and join threads. Return 1 for runtime/global errors and 130 for Ctrl+C. Preserve completed rows as partial output when storage remains writable; record the global error and unprocessed inputs in `ocr_failures.csv`. Diagnostics identify the cause and completed count. Preserve previous successful output.
+- Stage both partial-run artifacts before replacing either destination. If publication fails, restore the previous pair where possible and report any rollback problem. Successful publication removes obsolete partial/failure artifacts; cleanup errors are reported explicitly.
 
 | Situation | Outcome |
 |---|---|
@@ -88,7 +88,7 @@ After loading finishes, call graceful `queue.shutdown()`. Workers drain queued j
 
 For cancellation or a global failure, set the stop event and call graceful `shutdown()` to reject new jobs and wake a loader blocked in `put()`. Workers check the event after dequeueing and close remaining images without OCR. Avoid immediate shutdown that discards image objects before explicit cleanup. An active OCR call finishes or reaches its timeout; the worker closes its image and skips subsequent inference. Per-image failures do not shut down the queue.
 
-Main joins all non-daemon threads in timed `join()` loops so Ctrl+C remains responsive on Windows. Thread-entry exception handlers record global failures and request shutdown, preventing silent worker death. Main drains and closes any remaining jobs after joins. Completion is verified from joined threads and outcome accounting, rather than relying on queue emptiness or `Queue.join()`.
+Main joins all non-daemon threads in timed `join()` loops so Ctrl+C remains responsive on Windows. A caught Ctrl+C requests shutdown, then waits for active work to finish before writing partial artifacts and returning 130. Thread-entry exception handlers record global failures and request shutdown, preventing silent worker death. Main drains and closes any remaining jobs after joins. Completion is verified from joined threads and outcome accounting, rather than relying on queue emptiness or `Queue.join()`.
 
 The recognizer has a per-attempt Tesseract timeout. This bounds Tesseract calls, not arbitrary file I/O or an injected recognizer; do not claim a universal runtime bound from that timeout.
 

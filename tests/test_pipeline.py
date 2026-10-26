@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import csv
+import json
+import os
+import subprocess
+import sys
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -67,6 +71,8 @@ def test_run_writes_associated_csv_rows_and_closes_images_and_threads(
 
     config_path = tmp_path / "config.txt"
     config_path.write_text(f"image_dir={image_dir}\nn_workers={n_workers}\n", encoding="utf-8")
+    (tmp_path / "ocr_results.partial.csv").write_text("stale partial\n", encoding="utf-8")
+    (tmp_path / "ocr_failures.csv").write_text("stale failures\n", encoding="utf-8")
     expected_text = {
         1: 'comma, quote " and\nnewline',
         2: "second image",
@@ -100,6 +106,8 @@ def test_run_writes_associated_csv_rows_and_closes_images_and_threads(
     assert all(_is_closed(image) for image in recognizer.images)
     assert recognizer.max_active == n_workers
     assert not list(tmp_path.glob(".ocr_results.*.tmp"))
+    assert not (tmp_path / "ocr_results.partial.csv").exists()
+    assert not (tmp_path / "ocr_failures.csv").exists()
 
 
 def _is_closed(image: Image.Image) -> bool:
@@ -270,8 +278,9 @@ def test_run_reports_corrupt_image_without_stopping_later_images(
 def test_run_treats_missing_ocr_prerequisite_as_global_error(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """A missing shared OCR prerequisite stops the run instead of becoming an image failure."""
+    """A shared prerequisite failure is reported globally and preserves complete output."""
     image_dir = tmp_path / "images"
     image_dir.mkdir()
     pipeline_image_writer(image_dir / "alpha.png", 1)
@@ -280,7 +289,164 @@ def test_run_treats_missing_ocr_prerequisite_as_global_error(
     old_output.write_text("previous complete run\n", encoding="utf-8")
     recognizer = ScriptedRecognizer({1: [PrerequisiteError("model unavailable")]})
 
-    with pytest.raises(RuntimeError, match="unexpected error"):
-        run(config_path, recognizer)
+    assert run(config_path, recognizer) == 1
 
     assert old_output.read_text(encoding="utf-8") == "previous complete run\n"
+    with (tmp_path / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+        assert list(csv.reader(stream)) == [["image_id", "filename", "text", "processing_time_ms"]]
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert failures[0]["stage"] == "pipeline"
+    assert failures[0]["exception_type"] == "PrerequisiteError"
+    assert failures[1]["filename"] == "alpha.png"
+    assert failures[1]["stage"] == "unprocessed"
+    assert "cancelled" not in failures[1]["message"]
+    assert "model unavailable" in capsys.readouterr().err
+
+
+def test_run_rolls_back_partial_artifact_if_failure_report_cannot_be_published(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed second artifact replacement restores both prior report files."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    config_path = _write_config(tmp_path, image_dir)
+    partial_path = tmp_path / "ocr_results.partial.csv"
+    failures_path = tmp_path / "ocr_failures.csv"
+    partial_path.write_text("old partial\n", encoding="utf-8")
+    failures_path.write_text("old failures\n", encoding="utf-8")
+    recognizer = ScriptedRecognizer({1: [RecognitionFailedError("terminal image failure")]})
+    original_replace = os.replace
+    fail_failure_publication = True
+
+    def replace_with_failure(
+        source: str | os.PathLike[str], destination: str | os.PathLike[str]
+    ) -> None:
+        nonlocal fail_failure_publication
+        if Path(destination) == failures_path and fail_failure_publication:
+            fail_failure_publication = False
+            raise OSError("failure report destination is unavailable")
+        original_replace(source, destination)
+
+    monkeypatch.setattr(os, "replace", replace_with_failure)
+
+    assert run(config_path, recognizer) == 1
+    assert partial_path.read_text(encoding="utf-8") == "old partial\n"
+    assert failures_path.read_text(encoding="utf-8") == "old failures\n"
+
+
+def test_run_preserves_complete_output_and_publishes_partial_after_output_error(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failed complete-output replacement leaves the prior CSV and reports this run."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    config_path = _write_config(tmp_path, image_dir)
+    complete_path = tmp_path / "ocr_results.csv"
+    complete_path.write_text("previous complete run\n", encoding="utf-8")
+    original_replace = os.replace
+
+    def reject_complete_publication(
+        source: str | os.PathLike[str], destination: str | os.PathLike[str]
+    ) -> None:
+        if Path(destination) == complete_path:
+            raise OSError("complete output is read-only")
+        original_replace(source, destination)
+
+    monkeypatch.setattr(os, "replace", reject_complete_publication)
+
+    assert run(config_path, ScriptedRecognizer({1: ["recognized"]})) == 1
+
+    assert complete_path.read_text(encoding="utf-8") == "previous complete run\n"
+    with (tmp_path / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [(row["filename"], row["text"]) for row in rows] == [("alpha.png", "recognized")]
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert failures[0]["stage"] == "pipeline"
+    assert failures[0]["message"] == "complete output is read-only"
+
+
+def test_run_publishes_only_partial_artifacts_when_interrupted(
+    tmp_path: Path,
+) -> None:
+    """SIGINT stops the run, joins its threads, and leaves prior complete output intact."""
+    script = f"""
+        import csv
+        import json
+        import signal
+        import threading
+        import time
+        from pathlib import Path
+        from PIL import Image
+        from parallel_ocr_pipeline.pipeline import run
+
+        root = Path({str(tmp_path)!r})
+        image_dir = root / "images"
+        image_dir.mkdir()
+        for index in range(8):
+            image = Image.new("RGB", (2, 2), (index, 0, 0))
+            image.save(image_dir / f"{{index:02}}.png")
+            image.close()
+        config = root / "config.txt"
+        config.write_text(
+            f"image_dir={{image_dir}}" + chr(10) + "n_workers=2" + chr(10),
+            encoding="utf-8",
+        )
+        previous = root / "ocr_results.csv"
+        previous.write_text("previous complete run" + chr(10), encoding="utf-8")
+        active = []
+        active_lock = threading.Lock()
+
+        class SlowRecognizer:
+            def recognize(self, image, /):
+                with active_lock:
+                    active.append(image)
+                time.sleep(1.0)
+                return "recognized"
+
+        timer = threading.Timer(0.7, lambda: signal.raise_signal(signal.SIGINT))
+        timer.start()
+        status = run(config, SlowRecognizer())
+        timer.join()
+        active_images_closed = True
+        for image in active:
+            try:
+                image.getpixel((0, 0))
+                active_images_closed = False
+            except ValueError:
+                pass
+        print(json.dumps({{
+            "status": status,
+            "old_output": previous.read_text(encoding="utf-8"),
+            "partial_exists": (root / "ocr_results.partial.csv").is_file(),
+            "failure_exists": (root / "ocr_failures.csv").is_file(),
+            "recognized_count": len(active),
+            "active_images_closed": active_images_closed,
+        }}))
+    """
+
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads(completed.stdout.splitlines()[-1])
+    assert result == {
+        "status": 130,
+        "old_output": "previous complete run\n",
+        "partial_exists": True,
+        "failure_exists": True,
+        "recognized_count": 2,
+        "active_images_closed": True,
+    }
