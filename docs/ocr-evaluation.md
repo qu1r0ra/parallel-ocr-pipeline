@@ -75,6 +75,6 @@ just test                                                # behavioral tests (rea
 
 `just evaluate --verbose` lists every image. Both commands accept `--executable`, `--tessdata-dir`, and `--timeout`.
 
-## Python 3.15.0
+## Current Python 3.15.0 result
 
-The project now targets Python 3.15. The accuracy result above was measured on Python 3.11; rerun the real OCR evaluation on Python 3.15 before treating that result as verified for the current target.
+On Windows 11 with Python 3.15.0, Pillow 12.3.0, pytesseract 0.3.13, and Tesseract 5.4.0.20240606, `just evaluate` passed at **0.9952** character accuracy, with 96 exact matches and no recognition failures. Complete pipeline CSVs from one and four workers received the same score using `just evaluate-pipeline`. Full machine details, row checks, and lifecycle evidence are in [integrated validation](integrated-validation.md). The earlier Python 3.11 result above is historical.

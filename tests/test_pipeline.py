@@ -30,6 +30,7 @@ class ScriptedRecognizer:
     def __init__(self, outcomes: dict[int, list[str | Exception]]) -> None:
         self._outcomes = outcomes
         self._attempts: dict[int, int] = {}
+        self._images: dict[int, list[Image.Image]] = {}
         self._lock = threading.Lock()
 
     def recognize(self, image: Image.Image, /) -> str:
@@ -39,6 +40,7 @@ class ScriptedRecognizer:
         with self._lock:
             attempt = self._attempts.get(marker, 0)
             self._attempts[marker] = attempt + 1
+            self._images.setdefault(marker, []).append(image)
             outcome = self._outcomes[marker][attempt]
         if isinstance(outcome, Exception):
             raise outcome
@@ -46,6 +48,10 @@ class ScriptedRecognizer:
 
     def attempts_for(self, marker: int) -> int:
         return self._attempts.get(marker, 0)
+
+    def images_for(self, marker: int) -> tuple[Image.Image, ...]:
+        with self._lock:
+            return tuple(self._images.get(marker, ()))
 
 
 def _write_config(tmp_path: Path, image_dir: Path, n_workers: int = 1) -> Path:
@@ -162,6 +168,11 @@ def test_run_retries_timed_out_recognition_and_accepts_empty_text(
     ]
     assert recognizer.attempts_for(1) == 2
     assert recognizer.attempts_for(2) == 1
+    retried_images = recognizer.images_for(1)
+    assert len(retried_images) == 2
+    assert retried_images[0] is retried_images[1]
+    assert getattr(retried_images[0], "fp", None) is None
+    assert _is_closed(retried_images[0])
 
 
 def test_run_reports_image_failures_and_continues_other_images(
@@ -392,11 +403,13 @@ def test_run_preserves_complete_output_and_publishes_partial_after_output_error(
     assert failures[0]["message"] == "complete output is read-only"
 
 
-def test_run_cancels_with_a_full_queue_and_closes_queued_images(
+@pytest.mark.parametrize("stop_kind", ["cancellation", "worker_failure"])
+def test_run_stops_with_a_full_queue_and_closes_queued_images(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],
+    stop_kind: str,
 ) -> None:
-    """Cancel at a deterministic full-queue point and bound shutdown with a subprocess timeout."""
+    """Cancellation and global failure drain queued images under a subprocess timeout."""
     image_dir = tmp_path / "images"
     image_dir.mkdir()
     for index in range(8):
@@ -414,6 +427,7 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
         from parallel_ocr_pipeline.pipeline import run
 
         root = Path({str(tmp_path)!r})
+        stop_kind = {stop_kind!r}
         previous = root / "ocr_results.csv"
         recognizer_started = threading.Event()
         release_recognizer = threading.Event()
@@ -432,6 +446,8 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
                 recognizer_started.set()
                 if not release_recognizer.wait(timeout=5):
                     raise TimeoutError("Test did not release the active recognition.")
+                if stop_kind == "worker_failure":
+                    raise KeyboardInterrupt("Synthetic worker entry failure.")
                 return "recognized"
 
         def tracked_open(file, *args, **kwargs):
@@ -465,7 +481,11 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
 
         def cancel_when_queue_is_full():
             queue_full_observed.wait(timeout=5)
-            signal.raise_signal(signal.SIGINT)
+            if stop_kind == "cancellation":
+                signal.raise_signal(signal.SIGINT)
+            else:
+                release_loader.set()
+                release_recognizer.set()
 
         canceller = threading.Thread(target=cancel_when_queue_is_full)
         canceller.start()
@@ -507,7 +527,7 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
     assert completed.returncode == 0, completed.stderr
     result = json.loads(completed.stdout.splitlines()[-1])
     assert result == {
-        "status": 130,
+        "status": 130 if stop_kind == "cancellation" else 1,
         "old_output": "previous complete run\n",
         "partial_exists": True,
         "failure_exists": True,
@@ -641,4 +661,91 @@ def test_run_cancels_during_startup_without_losing_active_results_or_leaking_thr
         "old_output": "previous complete run\n",
         "partial": [["alpha.png", "recognized"]],
         "errors": ["KeyboardInterrupt", "NotProcessedError"],
+    }
+
+
+@pytest.mark.parametrize("failure_at", ["loader", "worker"])
+def test_run_reports_unexpected_thread_entry_errors_and_joins_every_thread(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    failure_at: str,
+) -> None:
+    """Unexpected loader or worker BaseExceptions are reported and never leak threads."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    _write_config(tmp_path, image_dir, n_workers=2)
+    previous = tmp_path / "ocr_results.csv"
+    previous.write_text("previous complete run\n", encoding="utf-8")
+    script = textwrap.dedent(
+        f"""
+        import csv
+        import json
+        import threading
+        from pathlib import Path
+        from PIL import Image
+        from parallel_ocr_pipeline.pipeline import run
+
+        root = Path({str(tmp_path)!r})
+        failure_at = {failure_at!r}
+        existing_threads = {{thread.ident for thread in threading.enumerate()}}
+        received_images = []
+
+        class CrashingRecognizer:
+            def recognize(self, image, /):
+                received_images.append(image)
+                raise KeyboardInterrupt("unexpected worker entry failure")
+
+        if failure_at == "loader":
+            def fail_to_open(*args, **kwargs):
+                raise KeyboardInterrupt("unexpected loader entry failure")
+            Image.open = fail_to_open
+
+        status = run(root / "config.txt", CrashingRecognizer())
+        with (root / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+            failures = list(csv.DictReader(stream))
+        pipeline_failures = [failure for failure in failures if failure["stage"] == "pipeline"]
+        live_threads = [
+            thread.name
+            for thread in threading.enumerate()
+            if thread.ident not in existing_threads
+        ]
+        images_closed = True
+        for image in received_images:
+            try:
+                image.getpixel((0, 0))
+                images_closed = False
+            except ValueError:
+                pass
+        with (root / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+            partial_rows = list(csv.DictReader(stream))
+        print(json.dumps({{
+            "status": status,
+            "pipeline_failure_types": [failure["exception_type"] for failure in pipeline_failures],
+            "live_threads": live_threads,
+            "old_output": (root / "ocr_results.csv").read_text(encoding="utf-8"),
+            "partial_rows": len(partial_rows),
+            "received_images": len(received_images),
+            "images_closed": images_closed,
+        }}))
+        """
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=Path(__file__).resolve().parents[1],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout.splitlines()[-1]) == {
+        "status": 1,
+        "pipeline_failure_types": ["KeyboardInterrupt"],
+        "live_threads": [],
+        "old_output": "previous complete run\n",
+        "partial_rows": 0,
+        "received_images": 1 if failure_at == "worker" else 0,
+        "images_closed": True,
     }

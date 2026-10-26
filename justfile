@@ -63,6 +63,10 @@ recognize path *args:
 evaluate *args:
     uv run --no-sync python scripts/evaluate.py {{args}}
 
+# Validate a complete pipeline CSV and score it with the project character metric.
+evaluate-pipeline csv *args:
+    uv run --no-sync python scripts/evaluate_pipeline.py "{{csv}}" {{args}}
+
 # Run the behavioral tests.
 test *args:
     uv run --no-sync pytest {{args}}
