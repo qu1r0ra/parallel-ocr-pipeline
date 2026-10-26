@@ -5,7 +5,7 @@ default:
 
 # Install the pinned interpreter, project, development tools, and commit hooks.
 setup:
-    uv python install 3.11
+    uv python install 3.15
     uv sync --locked --all-groups
     uv run --no-sync pre-commit install
 
@@ -46,6 +46,14 @@ verify:
 # Run a real Python helper script; this is not an OCR application command.
 run path *args:
     uv run --no-sync python "{{path}}" {{args}}
+
+# Run the configured multi-worker OCR pipeline.
+pipeline config="config.txt":
+    uv run --no-sync python scripts/run_pipeline.py "{{config}}"
+
+# Compare one, two, and four pipeline workers using the root config's image directory.
+benchmark:
+    uv run --no-sync python scripts/benchmark_pipeline.py
 
 # Recognize one image with the real Tesseract recognizer.
 recognize path *args:

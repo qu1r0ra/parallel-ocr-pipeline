@@ -12,10 +12,13 @@ The ownership split leaves both students with substantial implementation work wh
 
 ## Next steps
 
-1. Both teammates set up the same Python 3.11 lockfile and prepare matching local dataset and model files. Run `just check-environment` on each machine.
-2. Follow the accepted [concurrency and shutdown design](concurrency-design.md) from [issue #3](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3): threads, bounded `queue.Queue`, locked CSV writes, bounded per-image recovery, and distinguishable partial output. Migrate both environments and the lockfile to the agreed Python 3.15.0 target before implementing queue shutdown; step 1 describes the current scaffold.
-3. Quirora implements and evaluates the standalone image recognizer in [issue #4](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/4).
-4. Imman implements the configured parallel pipeline in [issue #5](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/5), using the agreed design and the OCR contract.
-5. Integrate, verify real recognition and failure behavior, benchmark comparable worker counts, and prepare the CSV and slides in the later validation and submission issues.
+1. Both teammates set up the same Python 3.15 lockfile and prepare matching local dataset and model files. Run `just check-environment` on each machine.
+2. Follow the accepted [concurrency and shutdown design](concurrency-design.md) from [issue #3](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3): threads, bounded `queue.Queue`, locked CSV writes, bounded per-image recovery, and distinguishable partial output.
+3. The standalone recognizer and configured pipeline are implemented. Use `just evaluate` for recognition quality, `just pipeline` for a configured run, and `just benchmark` for the repeatable worker-count comparison.
+4. Quirora should run `just check-environment`, `just verify`, `just evaluate`, and `just benchmark` on their Windows machine. Record the machine-specific OCR and benchmark results in [benchmark results](benchmark-results.md); results from Imman's machine do not establish performance on Quirora's host.
+5. The deterministic full-queue cancellation test is now covered in the bounded test suite. Still score a complete pipeline-produced CSV against the labels using the documented metric, and preserve the current successful output while testing failed reruns.
+6. Complete the benchmark record with dependency versions and recovery activity, and discuss variability and likely bottlenecks with both teammates. Confirm that the measured gain and worker-count recommendation are defensible for each machine.
+7. Jointly prepare and review the submission artifacts: a clean source ZIP, a verified complete 100-image CSV, and the PowerPoint covering the design, recovery/shutdown behavior, and benchmark evidence. Keep the November 5, 2026, 10:00 AM Asia/Manila submission deadline in view; coursework submission remains a human action.
+8. Do not merge `issue-5` into `main` until Quirora has tested the branch on their machine and the outstanding integration checks have been reviewed. If any compatibility or correctness concern remains, leave the branch unmerged for collaborator testing.
 
-The scaffold intentionally contains no working recognizer, config parser, loader, worker pool, output writer, or benchmark command. Add each when its owner starts the corresponding implementation.
+The accepted implementation boundaries and failure behavior remain in the [OCR contract](ocr-contract.md) and [concurrency design](concurrency-design.md).

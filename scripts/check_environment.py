@@ -91,11 +91,11 @@ def _check_dataset() -> bool:
 def main() -> int:
     errors = 0
     errors += not _report(
-        sys.version_info[:2] == (3, 11),
-        f"Python 3.11 selected (running {sys.version.split()[0]}).",
+        sys.version_info[:2] == (3, 15),
+        f"Python 3.15 selected (running {sys.version.split()[0]}).",
     )
-    if sys.version_info[:2] != (3, 11):
-        print("       Run `just setup` to install and select the pinned Python 3.11 environment.")
+    if sys.version_info[:2] != (3, 15):
+        print("       Run `just setup` to install and select the pinned Python 3.15 environment.")
 
     for module, package in (("PIL", "Pillow"), ("pytesseract", "pytesseract")):
         available = importlib.util.find_spec(module) is not None

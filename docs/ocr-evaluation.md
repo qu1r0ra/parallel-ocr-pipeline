@@ -13,7 +13,7 @@
 
 Build one recognizer per process and share it among workers.
 
-`pytesseract` reads the executable from a module attribute and the model directory from `TESSDATA_PREFIX`, so both are process-wide and the most recently constructed recognizer wins. The model directory uses `TESSDATA_PREFIX` instead of `--tessdata-dir` because `pytesseract` cannot pass a quoted path containing spaces on Windows (the option keeps literal quote characters). Tesseract runs as a separate process; set `OMP_THREAD_LIMIT=1` for pipeline benchmarks per the [concurrency design](concurrency-design.md).
+`pytesseract` reads the executable from a module attribute and the model directory from `TESSDATA_PREFIX`, so both are process-wide and the most recently constructed recognizer wins. The model directory uses `TESSDATA_PREFIX` instead of `--tessdata-dir` because `pytesseract` cannot pass a quoted path containing spaces on Windows (the option keeps literal quote characters). Tesseract runs as a separate process. The pipeline defaults `OMP_THREAD_LIMIT` to `1` while preserving explicit overrides; the benchmark pins it to `1` per the [concurrency design](concurrency-design.md). Standalone recognizer and evaluator commands inherit the caller's environment.
 
 ## Failures
 
@@ -77,4 +77,4 @@ just test                                                # behavioral tests (rea
 
 ## Python 3.15.0
 
-Verified only on the current Python 3.11 scaffold. The code uses no 3.11-specific features; the interpreter migration and the joint 3.15.0 verification (Pillow 12.3.0, pytesseract 0.3.13, real Tesseract call) belong to #5 and #6.
+The project now targets Python 3.15. The accuracy result above was measured on Python 3.11; rerun the real OCR evaluation on Python 3.15 before treating that result as verified for the current target.
