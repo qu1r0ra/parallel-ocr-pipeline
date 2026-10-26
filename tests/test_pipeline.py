@@ -519,9 +519,11 @@ def test_run_cancels_with_a_full_queue_and_closes_queued_images(
     }
 
 
+@pytest.mark.parametrize("interrupt_at", ["start", "alive_check"])
 def test_run_cancels_during_startup_without_losing_active_results_or_leaking_threads(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],
+    interrupt_at: str,
 ) -> None:
     """An interrupted start still joins its thread before closing shared output."""
     image_dir = tmp_path / "images"
@@ -548,7 +550,9 @@ def test_run_cancels_during_startup_without_losing_active_results_or_leaking_thr
         recognized_images = []
         original_start = threading.Thread.start
         original_join = threading.Thread.join
+        original_is_alive = threading.Thread.is_alive
         original_open = Image.open
+        interrupted = False
 
         class SlowRecognizer:
             def recognize(self, image, /):
@@ -570,7 +574,15 @@ def test_run_cancels_during_startup_without_losing_active_results_or_leaking_thr
             started.append(thread)
             if len(started) == 2:
                 assert active.wait(5) and loading.wait(5)
+                if {interrupt_at!r} == "start":
+                    raise KeyboardInterrupt
+
+        def interrupted_alive_check(thread):
+            global interrupted
+            if {interrupt_at!r} == "alive_check" and len(started) == 2 and not interrupted:
+                interrupted = True
                 raise KeyboardInterrupt
+            return original_is_alive(thread)
 
         def releasing_join(thread, *args, **kwargs):
             # Hold active work until cleanup joins its owning OS thread.
@@ -583,6 +595,7 @@ def test_run_cancels_during_startup_without_losing_active_results_or_leaking_thr
         Image.open = blocked_open
         threading.Thread.start = interrupted_start
         threading.Thread.join = releasing_join
+        threading.Thread.is_alive = interrupted_alive_check
         try:
             status = run(root / "config.txt", SlowRecognizer())
             joined = all(not thread.is_alive() for thread in started)
@@ -614,6 +627,7 @@ def test_run_cancels_during_startup_without_losing_active_results_or_leaking_thr
     )
     completed = subprocess.run(
         [sys.executable, "-c", script],
+        cwd=Path(__file__).resolve().parents[1],
         capture_output=True,
         text=True,
         timeout=15,

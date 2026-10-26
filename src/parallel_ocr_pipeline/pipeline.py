@@ -227,7 +227,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
         return 1
     temporary_path: Path | None = None
     loader_thread = threading.Thread(target=loader, daemon=False)
-    started_threads: list[threading.Thread] = []
+    attempted_threads: list[threading.Thread] = []
     workers: list[threading.Thread] = []
     cancelled = False
     run_started_ns: int | None = None
@@ -261,22 +261,20 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
             try:
                 for thread in [*workers, loader_thread]:
                     # Track the attempt first: start() can be interrupted after launching.
-                    started_threads.append(thread)
+                    attempted_threads.append(thread)
                     thread.start()
             except BaseException:
                 request_stop()
                 raise
             finally:
                 # Workers own this stream until all active threads have finished.
-                cancelled = _join_threads(started_threads, request_stop) or cancelled
+                cancelled = _join_threads(attempted_threads, request_stop)
             stream.flush()
     except KeyboardInterrupt:
         cancelled = True
         request_stop()
-        _join_threads(started_threads, request_stop)
     except BaseException as error:  # noqa: BLE001
         request_stop(error)
-        _join_threads(started_threads, request_stop)
         print(
             f"Pipeline setup or output failed: {type(error).__name__}: {error}",
             file=sys.stderr,
@@ -487,8 +485,10 @@ def _worker_entry(
 def _join_threads(threads: list[threading.Thread], on_interrupt: Callable[[], None]) -> bool:
     interrupted = False
     for thread in threads:
-        while thread.is_alive():
+        while True:
             try:
+                if not thread.is_alive():
+                    break
                 thread.join(timeout=0.1)
             except KeyboardInterrupt:
                 interrupted = True

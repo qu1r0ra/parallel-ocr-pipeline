@@ -50,12 +50,13 @@ def test_cli_reports_invalid_config_with_status_two(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(os.name != "nt", reason="the fake Tesseract executable is a Windows .cmd file")
-@pytest.mark.parametrize("native_limit", [None, "3"])
+@pytest.mark.parametrize(("native_limit", "expected_limit"), [(None, "1"), ("3", "3")])
 def test_cli_runs_default_config_with_native_thread_default_or_explicit_override(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],
     monkeypatch: pytest.MonkeyPatch,
     native_limit: str | None,
+    expected_limit: str,
 ) -> None:
     image_dir = tmp_path / "images"
     image_dir.mkdir()
@@ -84,5 +85,5 @@ def test_cli_runs_default_config_with_native_thread_default_or_explicit_override
     with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
-        ("1", "sample.png", f"native threads={native_limit or '1'}")
+        ("1", "sample.png", f"native threads={expected_limit}")
     ]
