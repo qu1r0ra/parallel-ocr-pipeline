@@ -1,5 +1,9 @@
 # Agent skills
 
+### Project verification
+
+- For Python code changes in this Python 3.15 repository, run `just verify` before PR delivery. It supersedes the generic `Codes/AGENTS.md` exercise gate; this repository's `justfile` defines individual recipe behavior.
+
 ### Issue tracker
 
 - Track issues and specs in GitHub Issues; read `docs/agents/issue-tracker.md` before tracker operations.
