@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import os
 import queue
+import sys
 import tempfile
 import threading
 from dataclasses import dataclass
@@ -16,7 +17,13 @@ from PIL import Image
 
 from parallel_ocr_pipeline.config import InputImage, enumerate_images, load_config
 from parallel_ocr_pipeline.contracts import ImageRecognizer
-from parallel_ocr_pipeline.recognizer import TesseractRecognizer
+from parallel_ocr_pipeline.recognizer import (
+    PrerequisiteError,
+    RecognitionError,
+    RecognitionFailedError,
+    RecognitionTimeoutError,
+    TesseractRecognizer,
+)
 
 
 @dataclass(slots=True)
@@ -24,6 +31,16 @@ class _ImageJob:
     image_id: int
     filename: str
     image: Image.Image
+
+
+@dataclass(frozen=True, slots=True)
+class _ImageFailure:
+    image_id: int
+    filename: str
+    stage: str
+    attempts: int
+    exception_type: str
+    message: str
 
 
 def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> int:
@@ -41,6 +58,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
     stop_requested = threading.Event()
     fatal_errors: list[Exception] = []
     successful_ids: set[int] = set()
+    image_failures: list[_ImageFailure] = []
 
     def stop_after(error: Exception) -> None:
         with output_lock:
@@ -48,12 +66,54 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
         stop_requested.set()
         jobs.shutdown()
 
+    def record_image_failure(
+        image_id: int, filename: str, stage: str, attempts: int, error: Exception
+    ) -> None:
+        with output_lock:
+            image_failures.append(
+                _ImageFailure(
+                    image_id=image_id,
+                    filename=filename,
+                    stage=stage,
+                    attempts=attempts,
+                    exception_type=type(error).__name__,
+                    message=str(error),
+                )
+            )
+
     def loader() -> None:
         try:
             for input_image in inputs:
                 if stop_requested.is_set():
                     break
-                image = _load_image(input_image)
+                image: Image.Image | None = None
+                for attempt in range(1, 3):
+                    if stop_requested.is_set():
+                        break
+                    try:
+                        image = _load_image(input_image)
+                        break
+                    except PermissionError as error:
+                        if attempt == 2 or stop_requested.is_set():
+                            record_image_failure(
+                                input_image.image_id,
+                                input_image.path.name,
+                                "load",
+                                attempt,
+                                error,
+                            )
+                    except (OSError, ValueError, Image.DecompressionBombError) as error:
+                        record_image_failure(
+                            input_image.image_id,
+                            input_image.path.name,
+                            "load",
+                            attempt,
+                            error,
+                        )
+                        break
+
+                if image is None:
+                    continue
                 try:
                     jobs.put(
                         _ImageJob(
@@ -87,7 +147,48 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                 if stop_requested.is_set():
                     continue
                 started_ns = perf_counter_ns()
-                text = chosen_recognizer.recognize(job.image)
+                text = ""
+                recognized = False
+                for attempt in range(1, 3):
+                    if stop_requested.is_set():
+                        break
+                    try:
+                        text = chosen_recognizer.recognize(job.image)
+                        recognized = True
+                        break
+                    except RecognitionTimeoutError as error:
+                        if attempt == 2 or stop_requested.is_set():
+                            record_image_failure(
+                                job.image_id,
+                                job.filename,
+                                "recognize",
+                                attempt,
+                                error,
+                            )
+                    except RecognitionFailedError as error:
+                        record_image_failure(
+                            job.image_id,
+                            job.filename,
+                            "recognize",
+                            attempt,
+                            error,
+                        )
+                        break
+                    except PrerequisiteError as error:
+                        stop_after(error)
+                        break
+                    except RecognitionError as error:
+                        record_image_failure(
+                            job.image_id,
+                            job.filename,
+                            "recognize",
+                            attempt,
+                            error,
+                        )
+                        break
+
+                if not recognized:
+                    continue
                 processing_time_ms = (perf_counter_ns() - started_ns) / 1_000_000
                 with output_lock:
                     if job.image_id in successful_ids:
@@ -141,10 +242,68 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                     fatal_errors[0]
                 )
             expected_ids = {input_image.image_id for input_image in inputs}
-            if successful_ids != expected_ids:
+            failed_ids = [failure.image_id for failure in image_failures]
+            outcome_ids = successful_ids | set(failed_ids)
+            if (
+                outcome_ids != expected_ids
+                or len(failed_ids) != len(set(failed_ids))
+                or successful_ids.intersection(failed_ids)
+            ):
                 raise RuntimeError(
-                    "The OCR pipeline finished without exactly one result for every input image."
+                    "The OCR pipeline finished without exactly one outcome for every input image."
                 )
+
+        if image_failures:
+            partial_path = config_file.parent / "ocr_results.partial.csv"
+            failure_path = config_file.parent / "ocr_failures.csv"
+            failure_temporary_path: Path | None = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    mode="w",
+                    encoding="utf-8",
+                    newline="",
+                    prefix=".ocr_failures.",
+                    suffix=".tmp",
+                    dir=failure_path.parent,
+                    delete=False,
+                ) as failure_stream:
+                    failure_temporary_path = Path(failure_stream.name)
+                    failure_writer = csv.writer(failure_stream)
+                    failure_writer.writerow(
+                        [
+                            "image_id",
+                            "filename",
+                            "stage",
+                            "attempts",
+                            "exception_type",
+                            "message",
+                        ]
+                    )
+                    for failure in image_failures:
+                        failure_writer.writerow(
+                            [
+                                failure.image_id,
+                                failure.filename,
+                                failure.stage,
+                                failure.attempts,
+                                failure.exception_type,
+                                failure.message,
+                            ]
+                        )
+                os.replace(temporary_path, partial_path)
+                temporary_path = None
+                os.replace(failure_temporary_path, failure_path)
+                failure_temporary_path = None
+            finally:
+                if failure_temporary_path is not None:
+                    failure_temporary_path.unlink(missing_ok=True)
+            print(
+                f"Processed {len(successful_ids)} of {len(inputs)} images; "
+                f"{len(image_failures)} image(s) failed. Any existing ocr_results.csv is "
+                "from a previous successful run.",
+                file=sys.stderr,
+            )
+            return 1
 
         os.replace(temporary_path, output_path)
         temporary_path = None

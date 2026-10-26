@@ -4,12 +4,51 @@ import csv
 import threading
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 import pytest
 from PIL import Image
 
 from conftest import DeterministicRecognizer
 from parallel_ocr_pipeline.pipeline import run
+from parallel_ocr_pipeline.recognizer import (
+    PrerequisiteError,
+    RecognitionFailedError,
+    RecognitionTimeoutError,
+)
+
+
+class ScriptedRecognizer:
+    """Return or raise planned outcomes for each image marker."""
+
+    def __init__(self, outcomes: dict[int, list[str | Exception]]) -> None:
+        self._outcomes = outcomes
+        self._attempts: dict[int, int] = {}
+        self._lock = threading.Lock()
+
+    def recognize(self, image: Image.Image, /) -> str:
+        pixel = image.getpixel((0, 0))
+        assert isinstance(pixel, tuple) and isinstance(pixel[0], int)
+        marker = pixel[0]
+        with self._lock:
+            attempt = self._attempts.get(marker, 0)
+            self._attempts[marker] = attempt + 1
+            outcome = self._outcomes[marker][attempt]
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    def attempts_for(self, marker: int) -> int:
+        return self._attempts.get(marker, 0)
+
+
+def _write_config(tmp_path: Path, image_dir: Path, n_workers: int = 1) -> Path:
+    config_path = tmp_path / "config.txt"
+    config_path.write_text(
+        f"image_dir={image_dir}\nn_workers={n_workers}\n",
+        encoding="utf-8",
+    )
+    return config_path
 
 
 @pytest.mark.parametrize("n_workers", [1, 3])
@@ -67,3 +106,181 @@ def _is_closed(image: Image.Image) -> bool:
     with pytest.raises(ValueError):
         image.getpixel((0, 0))
     return True
+
+
+def test_run_retries_timed_out_recognition_and_accepts_empty_text(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+) -> None:
+    """A recovered timeout produces one successful row, including for empty OCR text."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    pipeline_image_writer(image_dir / "beta.png", 2)
+    config_path = _write_config(tmp_path, image_dir)
+    recognizer = ScriptedRecognizer(
+        {
+            1: [RecognitionTimeoutError("temporary timeout"), ""],
+            2: ["recognized"],
+        }
+    )
+
+    assert run(config_path, recognizer) == 0
+
+    with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [(row["filename"], row["text"]) for row in rows] == [
+        ("alpha.png", ""),
+        ("beta.png", "recognized"),
+    ]
+    assert recognizer.attempts_for(1) == 2
+    assert recognizer.attempts_for(2) == 1
+
+
+def test_run_reports_image_failures_and_continues_other_images(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Exhausted and terminal image errors are reported while later images still succeed."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha-timeout.png", 1)
+    pipeline_image_writer(image_dir / "beta-terminal.png", 2)
+    pipeline_image_writer(image_dir / "charlie-success.png", 3)
+    config_path = _write_config(tmp_path, image_dir)
+    successful_output = tmp_path / "ocr_results.csv"
+    successful_output.write_text("previous complete run\n", encoding="utf-8")
+    recognizer = ScriptedRecognizer(
+        {
+            1: [
+                RecognitionTimeoutError("first timeout"),
+                RecognitionTimeoutError("second timeout"),
+            ],
+            2: [RecognitionFailedError("bad image content")],
+            3: ["later image succeeded"],
+        }
+    )
+
+    assert run(config_path, recognizer) == 1
+
+    with (tmp_path / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+        partial_rows = list(csv.DictReader(stream))
+    assert [(row["filename"], row["text"]) for row in partial_rows] == [
+        ("charlie-success.png", "later image succeeded")
+    ]
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert failures == [
+        {
+            "image_id": "1",
+            "filename": "alpha-timeout.png",
+            "stage": "recognize",
+            "attempts": "2",
+            "exception_type": "RecognitionTimeoutError",
+            "message": "second timeout",
+        },
+        {
+            "image_id": "2",
+            "filename": "beta-terminal.png",
+            "stage": "recognize",
+            "attempts": "1",
+            "exception_type": "RecognitionFailedError",
+            "message": "bad image content",
+        },
+    ]
+    assert successful_output.read_text(encoding="utf-8") == "previous complete run\n"
+    assert "previous successful run" in capsys.readouterr().err
+
+
+def test_run_retries_temporary_image_access_denial(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A temporary file-access denial is retried by the loader."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    image_path = pipeline_image_writer(image_dir / "alpha.png", 1)
+    config_path = _write_config(tmp_path, image_dir)
+    recognizer = ScriptedRecognizer({1: ["recognized"]})
+    original_open = Image.open
+    denied_once = False
+
+    def open_with_temporary_denial(
+        file: Path,
+        mode: Literal["r"] = "r",
+        formats: list[str] | tuple[str, ...] | None = None,
+    ) -> Image.Image:
+        nonlocal denied_once
+        if Path(file) == image_path and not denied_once:
+            denied_once = True
+            raise PermissionError("file is temporarily locked")
+        return original_open(file, mode=mode, formats=formats)
+
+    monkeypatch.setattr(Image, "open", open_with_temporary_denial)
+
+    assert run(config_path, recognizer) == 0
+    assert denied_once
+    assert (tmp_path / "ocr_results.csv").is_file()
+
+
+def test_run_reports_corrupt_image_without_stopping_later_images(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+) -> None:
+    """A corrupt file is a terminal load failure, while later images still run."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    (image_dir / "alpha-corrupt.png").write_bytes(b"not a PNG image")
+    pipeline_image_writer(image_dir / "beta-good.png", 2)
+    config_path = _write_config(tmp_path, image_dir)
+    recognizer = ScriptedRecognizer({2: ["recognized"]})
+
+    assert run(config_path, recognizer) == 1
+
+    with (tmp_path / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+        partial_rows = list(csv.DictReader(stream))
+    assert [(row["filename"], row["text"]) for row in partial_rows] == [
+        ("beta-good.png", "recognized")
+    ]
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert len(failures) == 1
+    failure = failures[0]
+    assert {
+        key: failure[key]
+        for key in (
+            "image_id",
+            "filename",
+            "stage",
+            "attempts",
+            "exception_type",
+        )
+    } == {
+        "image_id": "1",
+        "filename": "alpha-corrupt.png",
+        "stage": "load",
+        "attempts": "1",
+        "exception_type": "UnidentifiedImageError",
+    }
+    assert failure["message"].startswith("cannot identify image file")
+
+
+def test_run_treats_missing_ocr_prerequisite_as_global_error(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+) -> None:
+    """A missing shared OCR prerequisite stops the run instead of becoming an image failure."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    pipeline_image_writer(image_dir / "alpha.png", 1)
+    config_path = _write_config(tmp_path, image_dir)
+    old_output = tmp_path / "ocr_results.csv"
+    old_output.write_text("previous complete run\n", encoding="utf-8")
+    recognizer = ScriptedRecognizer({1: [PrerequisiteError("model unavailable")]})
+
+    with pytest.raises(RuntimeError, match="unexpected error"):
+        run(config_path, recognizer)
+
+    assert old_output.read_text(encoding="utf-8") == "previous complete run\n"

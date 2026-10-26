@@ -57,7 +57,7 @@ The loader fully loads and detaches each image before enqueueing `(id, filename,
 
 ## Per-image recovery
 
-- Loading and recognition each allow at most two attempts: the initial attempt plus one retry for a known transient failure, such as temporary file-access contention or a Tesseract timeout. Loader retries stay in the loader; recognition retries stay with the worker. Never re-enqueue a job for retry.
+- Loading and recognition each allow at most two attempts: the initial attempt plus one retry for a known transient failure, such as temporary file-access contention or a Tesseract timeout. The loader retries `PermissionError` once; other image decoding and file errors are terminal for that image. Loader retries stay in the loader; recognition retries stay with the worker. Never re-enqueue a job for retry.
 - Clearly corrupt/unsupported images and non-transient recognition errors become terminal image failures immediately. Check the global stop event before another attempt.
 - A terminal failure records fixed ID, filename, stage (`load` or `recognize`), attempts at that stage, exception type, and message. A failed load never queues an invalid image. Other inputs continue.
 - A recovered image writes exactly one successful row. An unrecovered failure never writes invented OCR text. A legitimate empty OCR string is successful inference, not an exception or an automatic retry trigger.
