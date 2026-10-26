@@ -5,6 +5,8 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import threading
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -13,6 +15,71 @@ from PIL import Image, ImageDraw, ImageFont
 from parallel_ocr_pipeline.recognizer import DEFAULT_TESSDATA_DIR, TesseractRecognizer
 
 SUBPROCESS_LIMIT_SECONDS = 60
+
+
+class DeterministicRecognizer:
+    """Return fixed text for each test image while tracking concurrency and ownership."""
+
+    def __init__(
+        self,
+        text_by_marker: dict[int, str],
+        barrier: threading.Barrier,
+        slow_marker: int | None = None,
+    ) -> None:
+        self._text_by_marker = text_by_marker
+        self._barrier = barrier
+        self._slow_marker = slow_marker
+        self._release_slow = threading.Event()
+        self._fast_completions = 0
+        self._lock = threading.Lock()
+        self._active = 0
+        self.max_active = 0
+        self.images: list[Image.Image] = []
+        self.threads: set[threading.Thread] = set()
+
+    def recognize(self, image: Image.Image, /) -> str:
+        with self._lock:
+            self._active += 1
+            self.max_active = max(self.max_active, self._active)
+            self.images.append(image)
+            self.threads.add(threading.current_thread())
+
+        try:
+            self._barrier.wait(timeout=5)
+            pixel = image.getpixel((0, 0))
+            if not isinstance(pixel, tuple) or not isinstance(pixel[0], int):
+                raise TypeError("Test image did not contain an RGB marker.")
+            marker = pixel[0]
+            if marker == self._slow_marker:
+                if not self._release_slow.wait(timeout=5):
+                    raise TimeoutError("Other worker calls did not complete.")
+            elif self._slow_marker is not None:
+                with self._lock:
+                    self._fast_completions += 1
+                    if self._fast_completions == self._barrier.parties - 1:
+                        self._release_slow.set()
+            return self._text_by_marker[marker]
+        finally:
+            with self._lock:
+                self._active -= 1
+
+
+def write_pipeline_image(path: Path, marker: int) -> Path:
+    """Create a tiny image whose first pixel identifies it to the fake recognizer."""
+    image = Image.new("RGB", (2, 2), (marker, 0, 0))
+    image.save(path)
+    image.close()
+    return path
+
+
+@pytest.fixture
+def pipeline_image_writer() -> Callable[[Path, int], Path]:
+    return write_pipeline_image
+
+
+@pytest.fixture
+def deterministic_recognizer_factory() -> type[DeterministicRecognizer]:
+    return DeterministicRecognizer
 
 
 def real_executable() -> str | None:

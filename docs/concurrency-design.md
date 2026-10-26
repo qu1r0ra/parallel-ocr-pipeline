@@ -9,6 +9,7 @@
 | Workers | One loader and explicitly created, non-daemon `threading.Thread` workers. `n_workers` excludes the loader. |
 | Shared queue | `queue.Queue(maxsize=2 * n_workers)`, with built-in synchronization and `shutdown()`. |
 | Output | Workers write successful rows directly under a `threading.Lock`, in completion order. |
+| Output location | Write result files beside the config file. |
 | Recovery | One additional attempt at each failing stage for known transient loading or OCR failures; terminal image failures do not stop other images. |
 | Success | Publish `ocr_results.csv` only when every input succeeds; preserve the previous successful CSV until replacement succeeds. |
 | Image failures | Save successful rows as `ocr_results.partial.csv`, write a separate failure report, and exit 1. |
@@ -24,6 +25,7 @@ Threads keep shared state in one process and avoid serialization and Windows chi
 - Main validates `key=value` configuration. Blank lines and `#` comments are ignored; unknown or duplicate keys are rejected. `n_workers` must be an integer of at least 1. Relative `image_dir` resolves against the config file's directory.
 - Main lists images non-recursively, filters supported extensions, excludes hidden and `._*` metadata files, sorts filenames, and assigns IDs 1..N before starting work. Completion order never changes identity.
 - Missing input, invalid configuration, or zero candidate images exits 2 without publishing new output. Existing successful output remains intact.
+- Write `ocr_results.csv` beside the config file.
 - Ground-truth labels are evaluation data only; recognition and retry decisions never consult them.
 
 ## Shared state and ownership
