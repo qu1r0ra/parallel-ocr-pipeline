@@ -47,6 +47,10 @@ verify:
 run path *args:
     uv run --no-sync python "{{path}}" {{args}}
 
+# Run the configured multi-worker OCR pipeline.
+pipeline config="config.txt":
+    uv run --no-sync python scripts/run_pipeline.py "{{config}}"
+
 # Recognize one image with the real Tesseract recognizer.
 recognize path *args:
     uv run --no-sync python scripts/recognize.py "{{path}}" {{args}}

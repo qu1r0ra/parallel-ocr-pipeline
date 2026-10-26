@@ -227,7 +227,6 @@ __marimo__/
 /local-assets/models/
 /local-assets/dataset/
 /results/
-/config.txt
 
 # Documentation plans (Imman)
 issue-5-implementation-plan.md 

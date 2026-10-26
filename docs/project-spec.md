@@ -16,7 +16,7 @@ The repository currently contains a short README and Python ignore rules. Reposi
 
 Prepare a small, reproducible Windows development environment and a documented collaboration contract. The initiating teammate owns image preprocessing, Tesseract integration, and recognition-quality evaluation. Imman owns configuration, the loader, shared-queue coordination, worker lifecycle, result collection, and CSV output. Both teammates plan the concurrency design, with Imman owning its implementation. Integration, benchmarking, speedup analysis, and the slide deck are joint work.
 
-The preparation phase establishes tooling, package structure, sample configuration, local asset preparation, an environment check, requirements, interfaces, acceptance criteria, benchmark guidance, and a handoff note. It leaves the substantive OCR and pipeline implementations for their respective owners. The initiating teammate's standalone OCR module is their first subsequent implementation task.
+The preparation phase establishes tooling, package structure, the root `config.txt`, local asset preparation, an environment check, requirements, interfaces, acceptance criteria, benchmark guidance, and a handoff note. It leaves the substantive OCR and pipeline implementations for their respective owners. The initiating teammate's standalone OCR module is their first subsequent implementation task.
 
 The completed course application must:
 
