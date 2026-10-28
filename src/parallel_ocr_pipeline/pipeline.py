@@ -61,7 +61,12 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
     fatal_errors: list[BaseException] = []
     successful_ids: set[int] = set()
     image_failures: list[_ImageFailure] = []
+    retry_counts = {"loader": 0, "recognition": 0}
     cancelled = False
+
+    def record_retry(stage: str) -> None:
+        with output_lock:
+            retry_counts[stage] += 1
 
     def request_stop(error: BaseException | None = None) -> None:
         if error is not None:
@@ -102,6 +107,8 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                         break
                     try:
                         image = _load_image(input_image)
+                        if attempt > 1:
+                            record_retry("loader")
                         break
                     except PermissionError as error:
                         if attempt == 2 or stop_requested.is_set():
@@ -164,6 +171,8 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                         break
                     try:
                         text = chosen_recognizer.recognize(job.image)
+                        if attempt > 1:
+                            record_retry("recognition")
                         recognized = True
                         break
                     except RecognitionTimeoutError as error:
@@ -236,6 +245,15 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
         if run_started_ns is not None:
             elapsed_seconds = (perf_counter_ns() - run_started_ns) / 1_000_000_000
             print(f"Total processing time: {elapsed_seconds:.3f} seconds")
+
+    def report_recovery_activity() -> None:
+        with output_lock:
+            loader_retries = retry_counts["loader"]
+            recognition_retries = retry_counts["recognition"]
+        print(
+            "Recovery activity: "
+            f"loader retries={loader_retries}, recognition retries={recognition_retries}"
+        )
 
     try:
         with tempfile.NamedTemporaryFile(
@@ -381,6 +399,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
                 _remove_temporary_file(failure_temporary_path)
 
         report_total_time()
+        report_recovery_activity()
         if global_error is not None:
             print(
                 f"Pipeline stopped: {type(global_error).__name__}: {global_error}. "
@@ -442,6 +461,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
             if output_error_report_path is not None:
                 _remove_temporary_file(output_error_report_path)
         report_total_time()
+        report_recovery_activity()
         if temporary_path is None:
             print(
                 f"Could not publish complete OCR results: {error}. "
@@ -451,6 +471,7 @@ def run(config_path: str | Path, recognizer: ImageRecognizer | None = None) -> i
         return 1
     temporary_path = None
     report_total_time()
+    report_recovery_activity()
     stale_artifact_errors: list[OSError] = []
     for artifact in (
         config_file.parent / "ocr_results.partial.csv",

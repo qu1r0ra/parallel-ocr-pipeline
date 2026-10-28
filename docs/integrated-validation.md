@@ -31,7 +31,7 @@ The evaluator uses NFKC normalization, casefolding, and letters/digits only. It 
 
 The pipeline rows were checked for unique filenames, IDs associated with the sorted filenames, finite nonnegative per-image times, and the same character score as standalone evaluation. The 1-worker and 4-worker pipeline CSVs both pass `just evaluate-pipeline`. The four recognition mismatches are `fireproof`→`fireprocof`, `elision`→`clision`, `rotan`→`fotan`, and `boraginaceae`→`boraginacéae`.
 
-These local pipeline runs match the standalone score. The separate [benchmark report](benchmark-results.md) records 0.9928 and 94 exact matches with Tesseract 5.5.3; that result is from a different host and version. The collaborator run will establish the integrated score on that host and let us compare its standalone and pipeline results directly.
+These local pipeline runs match the standalone score. The [ticket #7 benchmark report](benchmark-results.md) records separate throughput measurements on this host and keeps the older results from a different host and Tesseract version as historical context. Those older results are not cross-machine integrated validation. A second-host run was waived for issue #6 and remains optional follow-up.
 
 ## Lifecycle and shutdown evidence
 
@@ -84,4 +84,4 @@ just pipeline results/integration/workers-4/config.txt
 just evaluate-pipeline results/integration/workers-4/ocr_results.csv
 ```
 
-Keep each config in its own directory because the pipeline writes output beside the config. Record Windows, Python, Pillow, pytesseract, and Tesseract versions, both standalone and pipeline accuracy/exact-match results, and any setup limitations. For a cross-machine comparison, share the output with the other teammate. No course submission is performed by these checks.
+Keep each config in its own directory because the pipeline writes output beside the config. Record Windows, Python, Pillow, pytesseract, and Tesseract versions, both standalone and pipeline accuracy/exact-match results, and any setup limitations. For optional cross-machine comparison, share the output with the other teammate. No course submission is performed by these checks.

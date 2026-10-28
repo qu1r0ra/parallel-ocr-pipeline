@@ -33,7 +33,7 @@ The setup task installs the uv-managed Python 3.15 interpreter and creates the p
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
 - [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/integrated-validation.md`](docs/integrated-validation.md) records pipeline CSV scoring and lifecycle checks for issue #6.
-- [`docs/benchmark-results.md`](docs/benchmark-results.md) records M6 acceptance evidence and the machine-specific performance comparison.
+- [`docs/benchmark-results.md`](docs/benchmark-results.md) records ticket #7's repeated measurements, analysis, and artifact review status.
 - [`docs/team-handoff.md`](docs/team-handoff.md) records the accepted ownership split and next tasks.
 
 Score a completed pipeline CSV against the same labels and character metric used by standalone evaluation:
@@ -44,14 +44,14 @@ just evaluate-pipeline path/to/ocr_results.csv
 
 ## Run the pipeline
 
-Edit `config.txt` to set `image_dir` and `n_workers`. The file is ready to use with the prepared dataset and two workers:
+Edit `config.txt` to set `image_dir` and `n_workers`. The file is ready to use with the prepared dataset and this host's best measured worker count:
 
 ```text
 image_dir=local-assets/dataset/images
-n_workers=2
+n_workers=4
 ```
 
-You only need to change these settings in `config.txt`; relative image paths are resolved from the config file's directory. From the repository root, run:
+Adjust the worker count for the target machine. Relative image paths are resolved from the config file's directory. From the repository root, run:
 
 ```powershell
 just pipeline
@@ -72,4 +72,4 @@ The pipeline defaults Tesseract's native thread limit (`OMP_THREAD_LIMIT`) to `1
 
 Run `just benchmark` to compare the full configured image workload with 1, 2, and 4 workers. It uses `image_dir` from `config.txt`, overrides `n_workers` for the comparison, and does not modify the config. The benchmark performs one warm-up and ten measured runs per worker count, interleaving measured counts. It sets `OMP_THREAD_LIMIT=1` only for benchmark child processes. Successful run outputs are temporary and removed; if any run fails, the benchmark stops and prints the location of preserved diagnostic artifacts.
 
-The benchmark reports each worker count's ten total runtimes, median, range, and speedup relative to the one-worker median. Speedup uses full pipeline elapsed time, not the sum of per-image CSV times. Record the machine and results when comparing performance; results are specific to the tested host.
+The benchmark reports each warm-up and measured run's elapsed time and successful loader/recognizer retry counts. It also reports each worker count's ten runtimes, the retry counts per measured run, median, range, and speedup relative to the one-worker median. Speedup uses full pipeline elapsed time, not the sum of per-image CSV times. Record the machine and results when comparing performance; results are specific to the tested host.
