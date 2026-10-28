@@ -229,5 +229,10 @@ __marimo__/
 /results/
 
 # Documentation plans (Imman)
-issue-5-implementation-plan.md 
-issue-5-progress-report.md 
+issue-5-implementation-plan.md
+issue-5-progress-report.md
+/ocr_results.csv
+/ocr_results.partial.csv
+/ocr_failures.csv
+/.ocr_results.*.tmp
+/.ocr_failures.*.tmp

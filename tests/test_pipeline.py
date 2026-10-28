@@ -175,6 +175,45 @@ def test_run_retries_timed_out_recognition_and_accepts_empty_text(
     assert _is_closed(retried_images[0])
 
 
+def test_run_reports_successful_loader_and_recognition_retries(
+    tmp_path: Path,
+    pipeline_image_writer: Callable[[Path, int], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The public run output summarizes recoveries from both retry stages."""
+    image_dir = tmp_path / "images"
+    image_dir.mkdir()
+    alpha_path = pipeline_image_writer(image_dir / "alpha.png", 1)
+    pipeline_image_writer(image_dir / "beta.png", 2)
+    config_path = _write_config(tmp_path, image_dir)
+    recognizer = ScriptedRecognizer(
+        {
+            1: ["alpha"],
+            2: [RecognitionTimeoutError("temporary timeout"), "beta"],
+        }
+    )
+    original_open = Image.open
+    denied_once = False
+
+    def open_with_temporary_denial(
+        file: Path,
+        mode: Literal["r"] = "r",
+        formats: list[str] | tuple[str, ...] | None = None,
+    ) -> Image.Image:
+        nonlocal denied_once
+        if Path(file) == alpha_path and not denied_once:
+            denied_once = True
+            raise PermissionError("file is temporarily locked")
+        return original_open(file, mode=mode, formats=formats)
+
+    monkeypatch.setattr(Image, "open", open_with_temporary_denial)
+
+    assert run(config_path, recognizer) == 0
+
+    assert "Recovery activity: loader retries=1, recognition retries=1" in capsys.readouterr().out
+
+
 def test_run_reports_image_failures_and_continues_other_images(
     tmp_path: Path,
     pipeline_image_writer: Callable[[Path, int], Path],

@@ -10,6 +10,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 from parallel_ocr_pipeline.config import ConfigError, enumerate_images, load_config
@@ -19,11 +20,22 @@ WARMUP_RUNS = 1
 MEASURED_RUNS = 10
 EXPECTED_IMAGE_COUNT = 100
 _TOTAL_TIME = re.compile(r"^Total processing time: ([0-9]+\.[0-9]{3}) seconds$", re.MULTILINE)
+_RECOVERY_ACTIVITY = re.compile(
+    r"^Recovery activity: loader retries=([0-9]+), recognition retries=([0-9]+)$",
+    re.MULTILINE,
+)
 _PIPELINE_SCRIPT = Path(__file__).with_name("run_pipeline.py")
 
 
 class BenchmarkError(RuntimeError):
     """A benchmark run did not produce complete, measurable output."""
+
+
+@dataclass(frozen=True, slots=True)
+class _RunMeasurement:
+    duration_seconds: float
+    loader_retries: int
+    recognition_retries: int
 
 
 def main() -> int:
@@ -45,7 +57,7 @@ def main() -> int:
 
     temporary_directory = Path(tempfile.mkdtemp(prefix="parallel-ocr-benchmark-"))
     try:
-        durations = _run_benchmark(config.image_dir, temporary_directory, len(inputs))
+        measurements = _run_benchmark(config.image_dir, temporary_directory, len(inputs))
     except BenchmarkError as error:
         print(f"Benchmark stopped: {error}.", file=sys.stderr)
         print(f"Temporary artifacts preserved at: {temporary_directory}", file=sys.stderr)
@@ -59,7 +71,7 @@ def main() -> int:
         print(f"Temporary artifacts preserved at: {temporary_directory}", file=sys.stderr)
         return 1
 
-    _print_summary(durations)
+    _print_summary(measurements)
     try:
         shutil.rmtree(temporary_directory)
     except OSError as error:
@@ -74,25 +86,32 @@ def main() -> int:
 
 def _run_benchmark(
     image_dir: Path, temporary_directory: Path, expected_image_count: int
-) -> dict[int, list[float]]:
+) -> dict[int, list[_RunMeasurement]]:
     environment = os.environ.copy()
     environment["OMP_THREAD_LIMIT"] = "1"
-    durations = {worker_count: [] for worker_count in WORKER_COUNTS}
+    measurements = {worker_count: [] for worker_count in WORKER_COUNTS}
 
     for worker_count in WORKER_COUNTS:
-        _run_once(
-            image_dir,
-            worker_count,
-            "warmup",
-            1,
-            temporary_directory,
-            expected_image_count,
-            environment,
-        )
+        for warmup in range(1, WARMUP_RUNS + 1):
+            measurement = _run_once(
+                image_dir,
+                worker_count,
+                "warmup",
+                warmup,
+                temporary_directory,
+                expected_image_count,
+                environment,
+            )
+            print(
+                f"Completed warmup {warmup}/{WARMUP_RUNS} with {worker_count} worker(s): "
+                f"{measurement.duration_seconds:.3f} seconds; "
+                f"retries: loader={measurement.loader_retries}, "
+                f"recognition={measurement.recognition_retries}."
+            )
 
     for trial in range(1, MEASURED_RUNS + 1):
         for worker_count in WORKER_COUNTS:
-            duration = _run_once(
+            measurement = _run_once(
                 image_dir,
                 worker_count,
                 "measured",
@@ -101,12 +120,14 @@ def _run_benchmark(
                 expected_image_count,
                 environment,
             )
-            durations[worker_count].append(duration)
+            measurements[worker_count].append(measurement)
             print(
                 f"Completed measured trial {trial}/{MEASURED_RUNS} "
-                f"with {worker_count} worker(s): {duration:.3f} seconds."
+                f"with {worker_count} worker(s): {measurement.duration_seconds:.3f} seconds; "
+                f"retries: loader={measurement.loader_retries}, "
+                f"recognition={measurement.recognition_retries}."
             )
-    return durations
+    return measurements
 
 
 def _run_once(
@@ -117,7 +138,7 @@ def _run_once(
     temporary_directory: Path,
     expected_image_count: int,
     environment: dict[str, str],
-) -> float:
+) -> _RunMeasurement:
     run_directory = temporary_directory / f"{trial_kind}-{trial_number:02}-workers-{worker_count}"
     run_directory.mkdir()
     config_path = run_directory / "config.txt"
@@ -165,10 +186,25 @@ def _run_once(
             f"{trial_kind} run {trial_number} with {worker_count} worker(s) did not report "
             f"exactly one total processing time. See {run_directory}"
         )
-    return float(time_matches[0])
+    recovery_matches = _RECOVERY_ACTIVITY.findall(completed.stdout)
+    if len(recovery_matches) != 1:
+        raise BenchmarkError(
+            f"{trial_kind} run {trial_number} with {worker_count} worker(s) did not report "
+            f"exactly one recovery activity summary. See {run_directory}"
+        )
+    loader_retries, recognition_retries = recovery_matches[0]
+    return _RunMeasurement(
+        duration_seconds=float(time_matches[0]),
+        loader_retries=int(loader_retries),
+        recognition_retries=int(recognition_retries),
+    )
 
 
-def _print_summary(durations: dict[int, list[float]]) -> None:
+def _print_summary(measurements: dict[int, list[_RunMeasurement]]) -> None:
+    durations = {
+        worker_count: [run.duration_seconds for run in runs]
+        for worker_count, runs in measurements.items()
+    }
     medians = {
         worker_count: statistics.median(worker_durations)
         for worker_count, worker_durations in durations.items()
@@ -182,6 +218,13 @@ def _print_summary(durations: dict[int, list[float]]) -> None:
         print(
             "Total processing times (seconds): "
             + ", ".join(f"{time:.3f}" for time in worker_durations)
+        )
+        worker_measurements = measurements[worker_count]
+        print(
+            "Successful retries per measured run (loader/recognition): "
+            + ", ".join(
+                f"{run.loader_retries}/{run.recognition_retries}" for run in worker_measurements
+            )
         )
         print(
             f"Median total processing time: {median:.3f} seconds; "
