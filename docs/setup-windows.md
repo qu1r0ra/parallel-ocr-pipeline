@@ -34,6 +34,13 @@ Run `just` or `just --list` to see task names. `just format` and `just fix` may 
 
 The generic `just run <script.py>` task executes only the named Python script. The scaffold intentionally has no application-run or benchmark task until those features are implemented.
 
-## Checks requiring Imman's machine
+## Collaborator verification
 
-The automated quality workflow checks the committed environment and source package on a native Windows runner. The environment diagnostic in this checkout validates Quirora's installed Tesseract and local asset paths. Imman should run `just setup`, `just prepare-assets`, `just check-environment`, and `just verify` on his own Windows machine before integration; the local Tesseract install and supplied asset paths cannot be verified by repository CI.
+The automated quality workflow checks the committed environment and source package on a native Windows runner. The environment diagnostic in this checkout validates Quirora's installed Tesseract and local asset paths. Imman confirmed that the integrated pipeline works on his Windows machine. A separate collaborator benchmark run is not required; these commands remain available to reproduce a clean local setup, whose Tesseract installation and supplied asset paths cannot be verified by repository CI:
+
+```powershell
+just setup
+just prepare-assets
+just check-environment
+just verify
+```

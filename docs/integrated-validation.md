@@ -1,6 +1,6 @@
 # Integrated OCR validation
 
-This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6). The project owner completed this acceptance on their Windows machine. Per the project decision, a second-host run is optional follow-up and does not block issue #6. The timings below are single acceptance runs, not benchmark measurements for #7.
+This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6). The project owner completed this acceptance on their Windows machine. Imman later confirmed the integrated pipeline works on his Windows machine; that confirmation does not add a second timed acceptance run. The timings below are single acceptance runs, not benchmark measurements for #7.
 
 ## Local environment
 
@@ -31,7 +31,7 @@ The evaluator uses NFKC normalization, casefolding, and letters/digits only. It 
 
 The pipeline rows were checked for unique filenames, IDs associated with the sorted filenames, finite nonnegative per-image times, and the same character score as standalone evaluation. The 1-worker and 4-worker pipeline CSVs both pass `just evaluate-pipeline`. The four recognition mismatches are `fireproof`→`fireprocof`, `elision`→`clision`, `rotan`→`fotan`, and `boraginaceae`→`boraginacéae`.
 
-These local pipeline runs match the standalone score. The [ticket #7 benchmark report](benchmark-results.md) records separate throughput measurements on this host and keeps the older results from a different host and Tesseract version as historical context. Those older results are not cross-machine integrated validation. A second-host run was waived for issue #6 and remains optional follow-up.
+These local pipeline runs match the standalone score. The [ticket #7 benchmark report](benchmark-results.md) records separate throughput measurements on this host and keeps the older results from a different host and Tesseract version as historical context. Those older results are not cross-machine integrated validation. Issue #6 was accepted using the project owner's measured run; Imman's later confirmation is sufficient collaborator verification, and no additional second-host run is pending.
 
 ## Lifecycle and shutdown evidence
 
