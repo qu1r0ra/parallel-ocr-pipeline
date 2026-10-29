@@ -1,6 +1,6 @@
 # Ticket #7 benchmark results
 
-**Status:** Quirora's repeated benchmark and complete CSV are recorded. Imman's review of the final artifacts remains pending.
+**Status:** Quirora's repeated benchmark and complete CSV are recorded. This report includes only Quirora's machine; the other-host run is excluded. The Canva presentation and teammate artifact review remain pending.
 
 This record covers the local issue #7 evidence. The performance results apply to the machine and software versions listed below. The coursework submission is a human action.
 
@@ -77,10 +77,6 @@ Parallel OCR reduced full-run time substantially while each Tesseract process wa
 ## Complete output CSV
 
 The submission candidate was produced with four workers in 4.495 seconds. `just evaluate-pipeline` scored all 100 images at 0.9952 character accuracy, with 96 exact matches and no recognition failures, above the required 0.50 threshold. An independent row check found 100 rows, 100 unique IDs, all expected filenames exactly once, and finite nonnegative per-image timings. The run reported zero successful loader and recognizer retries.
-
-## Earlier machine report
-
-The prior report recorded results from an Intel Core i3-10110U host with Tesseract 5.5.3.20260724: medians were 26.242 seconds at one worker, 17.145 seconds at two workers, and 14.034 seconds at four workers. That report predates per-run retry reporting and used a different Tesseract version. We keep it as historical context and do not combine it with the measurements above.
 
 ## Submission status
 
