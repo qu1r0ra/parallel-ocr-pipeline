@@ -1,6 +1,6 @@
 # Ticket #7 benchmark results
 
-**Status:** Quirora's repeated benchmark and complete CSV are recorded, and a clean source archive is prepared. This report includes only Quirora's machine; the other-host run is excluded. The Canva presentation and teammate artifact review remain pending.
+**Status:** Quirora's repeated benchmark and complete CSV are recorded, and a clean source archive is prepared. This report includes only Quirora's machine; the other-host run is excluded. Imman confirmed the pipeline works on his Windows machine and agreed to use Quirora's results. Only the Canva presentation remains to be prepared.
 
 This record covers the local issue #7 evidence. The performance results apply to the machine and software versions listed below. The coursework submission is a human action.
 
@@ -82,5 +82,6 @@ The submission candidate was produced with four workers in 4.495 seconds. `just 
 
 - The verified 100-image CSV is in the local ignored `results/issue7/final-output/` directory. Preserve it before removing this worktree.
 - The clean source ZIP and verified 100-image CSV are assembled in a local submission folder. The source ZIP excludes agent instructions and generated/local assets.
-- The Canva presentation remains to be prepared. Both teammates still need to review the source ZIP, CSV, and presentation and confirm they can explain their contributions and the shared design.
+- Imman confirmed the pipeline works on his Windows machine and approved using Quirora's benchmark results. The source ZIP and CSV are accepted; no second-host benchmark or additional artifact-review gate remains.
+- The Canva presentation is the only remaining artifact. It should explain the design, recovery and shutdown behavior, and benchmark evidence.
 - The submission deadline is November 5, 2026, 10:00 AM Asia/Manila. Do not submit coursework automatically.

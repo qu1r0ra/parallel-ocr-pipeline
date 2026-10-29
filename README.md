@@ -33,7 +33,7 @@ The setup task installs the uv-managed Python 3.15 interpreter and creates the p
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
 - [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/integrated-validation.md`](docs/integrated-validation.md) records pipeline CSV scoring and lifecycle checks for issue #6.
-- [`docs/benchmark-results.md`](docs/benchmark-results.md) records ticket #7's repeated measurements, analysis, and artifact review status.
+- [`docs/benchmark-results.md`](docs/benchmark-results.md) records ticket #7's repeated measurements, analysis, and submission status.
 - [`docs/team-handoff.md`](docs/team-handoff.md) records the accepted ownership split and next tasks.
 
 Score a completed pipeline CSV against the same labels and character metric used by standalone evaluation:
