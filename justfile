@@ -51,7 +51,7 @@ run path *args:
 pipeline config="config.txt":
     uv run --no-sync python scripts/run_pipeline.py "{{config}}"
 
-# Compare one, two, and four pipeline workers using the root config's image directory.
+# Compare one through thirty-two pipeline workers using the root config's image directory.
 benchmark:
     uv run --no-sync python scripts/benchmark_pipeline.py
 

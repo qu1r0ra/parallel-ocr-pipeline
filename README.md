@@ -44,11 +44,11 @@ just evaluate-pipeline path/to/ocr_results.csv
 
 ## Run the pipeline
 
-Edit `config.txt` to set `image_dir` and `n_workers`. The file is ready to use with the prepared dataset and this host's best measured worker count:
+Edit `config.txt` to set `image_dir` and `n_workers`. The file is ready to use with the prepared dataset and the lowest-median worker count from this host's 1–32 sweep:
 
 ```text
 image_dir=local-assets/dataset/images
-n_workers=4
+n_workers=11
 ```
 
 Adjust the worker count for the target machine. Relative image paths are resolved from the config file's directory. From the repository root, run:
@@ -70,6 +70,6 @@ The pipeline defaults Tesseract's native thread limit (`OMP_THREAD_LIMIT`) to `1
 
 `just test tests/test_pipeline.py` runs deterministic pipeline tests without Tesseract. For real OCR, install Tesseract, prepare the model and images, then run `just check-environment` and `just pipeline`. `just recognize <image>` and `just evaluate` remain separate OCR tools; the evaluator measures recognition quality against the labels.
 
-Run `just benchmark` to compare the full configured image workload with 1, 2, and 4 workers. It uses `image_dir` from `config.txt`, overrides `n_workers` for the comparison, and does not modify the config. The benchmark performs one warm-up and ten measured runs per worker count, interleaving measured counts. It sets `OMP_THREAD_LIMIT=1` only for benchmark child processes. Successful run outputs are temporary and removed; if any run fails, the benchmark stops and prints the location of preserved diagnostic artifacts.
+Run `just benchmark` to compare the full configured image workload with every worker count from 1 through 32. It uses `image_dir` from `config.txt`, overrides `n_workers` for the comparison, and does not modify the config. The benchmark performs one warm-up and ten measured runs per worker count, interleaving measured counts. It sets `OMP_THREAD_LIMIT=1` only for benchmark child processes. Successful run outputs are temporary and removed; if any run fails, the benchmark stops and prints the location of preserved diagnostic artifacts. See [`docs/benchmark-results.md`](docs/benchmark-results.md) for the recorded sweep and visualization.
 
 The benchmark reports each warm-up and measured run's elapsed time and successful loader/recognizer retry counts. It also reports each worker count's ten runtimes, the retry counts per measured run, median, range, and speedup relative to the one-worker median. Speedup uses full pipeline elapsed time, not the sum of per-image CSV times. Record the machine and results when comparing performance; results are specific to the tested host.

@@ -1,4 +1,4 @@
-"""Compare full-run OCR timings for one, two, and four workers."""
+"""Compare full-run OCR timings for one through thirty-two workers."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from parallel_ocr_pipeline.config import ConfigError, enumerate_images, load_config
 
-WORKER_COUNTS = (1, 2, 4)
+WORKER_COUNTS = tuple(range(1, 33))
 WARMUP_RUNS = 1
 MEASURED_RUNS = 10
 EXPECTED_IMAGE_COUNT = 100
