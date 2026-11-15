@@ -1,6 +1,6 @@
 # Parallel OCR Pipeline
 
-A native Windows OCR pipeline for CSC611M Machine Project 1. It includes a configured, multi-worker pipeline, a standalone Tesseract recognizer, and OCR evaluation tools.
+A native Windows OCR pipeline for CSC611M Machine Project 1, with Machine Project 2 distributed development planned in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). The working MP1 application includes a configured, multi-worker pipeline, a standalone Tesseract recognizer, and OCR evaluation tools. The commands below run MP1; distributed commands and container setup will arrive with their implementations.
 
 ## Start on Windows
 
@@ -31,6 +31,7 @@ The setup task installs the uv-managed Python 3.15 interpreter and creates the p
 - [`config.txt`](config.txt) contains the pipeline settings to edit before running.
 - [`docs/requirements.md`](docs/requirements.md) summarizes the Machine Project 1 handout.
 - [`docs/requirements-mp2.md`](docs/requirements-mp2.md) summarizes the Machine Project 2 distributed OCR handout.
+- [`docs/agents/mp2-development.md`](docs/agents/mp2-development.md) routes MP2 contributors to the accepted design and explains which MP1 guidance remains applicable.
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
 - [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/integrated-validation.md`](docs/integrated-validation.md) records pipeline CSV scoring and lifecycle checks for issue #6.
