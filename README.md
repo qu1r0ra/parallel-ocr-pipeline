@@ -29,7 +29,8 @@ The setup task installs the uv-managed Python 3.15 interpreter and creates the p
 ## Useful files
 
 - [`config.txt`](config.txt) contains the pipeline settings to edit before running.
-- [`docs/requirements.md`](docs/requirements.md) summarizes the course handout for project contributors.
+- [`docs/requirements.md`](docs/requirements.md) summarizes the Machine Project 1 handout.
+- [`docs/requirements-mp2.md`](docs/requirements-mp2.md) summarizes the Machine Project 2 distributed OCR handout.
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
 - [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/integrated-validation.md`](docs/integrated-validation.md) records pipeline CSV scoring and lifecycle checks for issue #6.

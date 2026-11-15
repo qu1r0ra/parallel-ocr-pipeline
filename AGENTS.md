@@ -14,4 +14,5 @@
 
 ### Domain docs
 
+- For course requirements, read `docs/requirements.md` for MP1 or `docs/requirements-mp2.md` for MP2.
 - Use the single-context layout; read `docs/agents/domain.md` before domain exploration.
