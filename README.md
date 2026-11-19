@@ -1,6 +1,6 @@
 # Parallel OCR Pipeline
 
-A native Windows OCR pipeline for CSC611M Machine Project 1, with Machine Project 2 distributed development planned in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). The working MP1 application includes a configured, multi-worker pipeline, a standalone Tesseract recognizer, and OCR evaluation tools. The commands below run MP1; distributed commands and container setup will arrive with their implementations.
+A native Windows OCR pipeline for CSC611M Machine Project 1, now extended with the first direct-Pyro5 master-to-worker workload for Machine Project 2. The MP1 application remains available alongside the distributed commands. The initial MP2 slice supports one worker process; process scaling, worker recovery, and container setup are being added in their follow-on issues.
 
 ## Start on Windows
 
@@ -32,6 +32,7 @@ The setup task installs the uv-managed Python 3.15 interpreter and creates the p
 - [`docs/requirements.md`](docs/requirements.md) summarizes the Machine Project 1 handout.
 - [`docs/requirements-mp2.md`](docs/requirements-mp2.md) summarizes the Machine Project 2 distributed OCR handout.
 - [`docs/agents/mp2-development.md`](docs/agents/mp2-development.md) routes MP2 contributors to the accepted design and explains which MP1 guidance remains applicable.
+- [`docs/pyro5-rpc-contract.md`](docs/pyro5-rpc-contract.md) defines the initial direct URI, message validation, replay, output, timing, and shutdown behavior.
 - [`docs/ocr-contract.md`](docs/ocr-contract.md) defines image ownership, failures, output expectations, and timing.
 - [`docs/ocr-evaluation.md`](docs/ocr-evaluation.md) records recognizer settings, preprocessing, failure types, and the recognition evaluation.
 - [`docs/integrated-validation.md`](docs/integrated-validation.md) records pipeline CSV scoring and lifecycle checks for issue #6.
@@ -67,6 +68,17 @@ The pipeline writes results beside the config file:
 The command prints total processing time from thread startup through output publication. Exit status `0` means success, `1` means a runtime or image failure, `2` means invalid configuration or input, and `130` means the run was cancelled with Ctrl+C.
 
 The pipeline defaults Tesseract's native thread limit (`OMP_THREAD_LIMIT`) to `1`, so Python workers control the parallelism. An explicit environment value overrides this default.
+
+## Run the first MP2 workload
+
+Copy `master_config.example.txt` to `master_config.txt` on the master and `worker_config.example.txt` to `worker_config.txt` on the worker. Set `image_dir` to the master's local dataset path. Set `master_host` to the address reachable from the worker (use `127.0.0.1` only when both processes run on the same machine). The worker does not need the dataset or any shared folder. Start the processes in separate terminals:
+
+```powershell
+just master
+just worker
+```
+
+The master writes `ocr_results.csv` beside its config only when every discovered image succeeds. Failed or interrupted workloads write `ocr_results.partial.csv` and `ocr_failures.csv` instead. The initial implementation requires `n_workers=1`; #25 adds configured worker-process scaling and containers, while #24 adds worker-failure reassignment. Both machines must have Python dependencies installed and the master's port open between them.
 
 ## Verify and benchmark
 

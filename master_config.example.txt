@@ -1,0 +1,3 @@
+# The master alone reads this image directory. Relative paths use this file's directory.
+image_dir=local-assets/dataset/images
+port=5000

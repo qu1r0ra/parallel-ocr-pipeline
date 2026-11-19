@@ -51,6 +51,14 @@ run path *args:
 pipeline config="config.txt":
     uv run --no-sync python scripts/run_pipeline.py "{{config}}"
 
+# Start the first MP2 direct-Pyro5 master.
+master config="master_config.txt":
+    uv run --no-sync python scripts/run_master.py "{{config}}"
+
+# Start one MP2 worker process using the direct master URI in its config.
+worker config="worker_config.txt":
+    uv run --no-sync python scripts/run_worker.py "{{config}}"
+
 # Compare one through thirty-two pipeline workers using the root config's image directory.
 benchmark:
     uv run --no-sync python scripts/benchmark_pipeline.py
