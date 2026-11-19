@@ -1,0 +1,4 @@
+# Use the master's reachable IP address or DNS name, not its loopback address, on another VM.
+master_host=127.0.0.1
+master_port=5000
+n_workers=1
