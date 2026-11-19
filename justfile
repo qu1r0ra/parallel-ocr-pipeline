@@ -55,9 +55,21 @@ pipeline config="config.txt":
 master config="master_config.txt":
     uv run --no-sync python scripts/run_master.py "{{config}}"
 
-# Start one MP2 worker process using the direct master URI in its config.
+# Start one MP2 worker node and its configured spawn child processes.
 worker config="worker_config.txt":
     uv run --no-sync python scripts/run_worker.py "{{config}}"
+
+# Validate the Compose model without starting containers.
+compose-config:
+    docker compose config
+
+# Start the master and the requested number of worker-node replicas.
+compose-up worker_nodes="2":
+    docker compose up --build --scale worker={{worker_nodes}}
+
+# Stop the local distributed cluster.
+compose-down:
+    docker compose down
 
 # Compare one through thirty-two pipeline workers using the root config's image directory.
 benchmark:

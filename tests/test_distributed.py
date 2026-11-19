@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import multiprocessing
+import os
 import socket
 import subprocess
 import sys
@@ -30,8 +31,18 @@ class FixedTextRecognizer:
         return "second image result"
 
 
+class ProcessIdRecognizer:
+    def recognize(self, image: Image.Image, /) -> str:
+        time.sleep(0.1)
+        return str(os.getpid())
+
+
 def _worker_child(config_path: str) -> None:
     raise SystemExit(run_worker(config_path, recognizer_factory=FixedTextRecognizer))
+
+
+def _worker_node_with_process_ids(config_path: str) -> None:
+    raise SystemExit(run_worker(config_path, recognizer_factory=ProcessIdRecognizer))
 
 
 def _free_port() -> int:
@@ -146,6 +157,77 @@ def test_worker_process_receives_image_over_pyro_recognizes_and_writes_csv(
     assert not (tmp_path / "ocr_results.partial.csv").exists()
     assert not (tmp_path / "ocr_failures.csv").exists()
     assert not (tmp_path / "ocr_results.previous.csv").exists()
+
+
+def test_worker_node_runs_multiple_spawned_processes(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    for index in range(12):
+        _write_image(images / f"{index:02}.png")
+    master, port, _ = _start_master(tmp_path, images)
+    config = _write_worker_config(tmp_path, port)
+    config.write_text(f"master_host=127.0.0.1\nmaster_port={port}\nn_workers=3\n", encoding="utf-8")
+    worker = multiprocessing.get_context("spawn").Process(
+        target=_worker_node_with_process_ids, args=(str(config),)
+    )
+    try:
+        _wait_for_server(master, port)
+        worker.start()
+        worker.join(timeout=30)
+        assert not worker.is_alive(), "worker node did not terminate"
+        assert worker.exitcode == 0
+        status, _, stderr = _finish_master(master)
+        assert status == 0, stderr
+        with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        assert len(rows) == 12
+        assert len({row["filename"] for row in rows}) == 12
+        assert len({row["text"] for row in rows}) == 3
+    finally:
+        if worker.is_alive():
+            worker.terminate()
+            worker.join(timeout=5)
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+
+def test_two_worker_nodes_process_a_shared_workload(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    for index in range(20):
+        _write_image(images / f"{index:02}.png")
+    master, port, _ = _start_master(tmp_path, images)
+    config = _write_worker_config(tmp_path, port)
+    context = multiprocessing.get_context("spawn")
+    workers = [
+        context.Process(target=_worker_node_with_process_ids, args=(str(config),)) for _ in range(2)
+    ]
+    started = []
+    try:
+        _wait_for_server(master, port)
+        for worker in workers:
+            worker.start()
+            started.append(worker)
+        for worker in workers:
+            worker.join(timeout=30)
+            assert not worker.is_alive(), "worker node did not terminate"
+            assert worker.exitcode == 0
+        status, _, stderr = _finish_master(master)
+        assert status == 0, stderr
+        with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        assert len(rows) == 20
+        assert len({row["filename"] for row in rows}) == 20
+        assert len({row["text"] for row in rows}) == 2
+    finally:
+        for worker in started:
+            if worker.is_alive():
+                worker.terminate()
+                worker.join(timeout=5)
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
 
 
 def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
