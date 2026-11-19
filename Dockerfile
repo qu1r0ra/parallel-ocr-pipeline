@@ -24,10 +24,7 @@ COPY src ./src
 COPY scripts/run_container.py ./scripts/run_container.py
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --no-editable \
-    && mkdir -p /app/local-assets \
-    && tessdata_dir="$(find /usr/share/tesseract-ocr -type d -name tessdata -print -quit)" \
-    && test -n "$tessdata_dir" \
-    && ln -s "$tessdata_dir" /app/local-assets/models
+    && mkdir -p /app/local-assets/models
 
 ENV PATH="/app/.venv/bin:$PATH"
 

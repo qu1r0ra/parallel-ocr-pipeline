@@ -22,6 +22,7 @@ services:
     build: .
     image: parallel-ocr-pipeline:local
     command: ["python", "scripts/run_container.py", "worker"]
+    stop_grace_period: 60s
     environment:
       MASTER_HOST: master
       MASTER_PORT: "5000"

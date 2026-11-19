@@ -6,19 +6,26 @@ This guide runs the MP2 master and worker nodes as separate Docker containers. T
 
 - Docker Engine or Docker Desktop with Linux containers and Docker Compose v2.
 - A prepared image dataset under `local-assets/dataset/images`; run `just prepare-assets` after placing the supplied archive as described in the Windows setup guide.
+- The supplied `eng.traineddata` at `local-assets/models/eng.traineddata`.
 - Enough memory and CPU for the selected worker replica and process counts. Replicas on one host share its physical resources.
 
 Copy `.env.example` to `.env` and adjust `HOST_DATASET_DIR`, `N_WORKERS`, and `MASTER_PUBLISH_PORT` as needed. Keep `.env` and course inputs private; they are not committed. The example points to this repository's prepared image directory. On PowerShell, use `Copy-Item .env.example .env`.
 
-`HOST_DATASET_DIR` is mounted read-only into the master as `/data/images`. Each worker receives no host mounts. The container image installs Tesseract and its English model; workers do not need the supplied dataset or labels. Results stay in the stopped master container until copied out.
+`HOST_DATASET_DIR` is mounted read-only into the master as `/data/images`. Each worker receives no host mounts. The image installs Tesseract. Copy the supplied English model into each worker container before starting it; workers do not need the supplied dataset or labels. Results stay in the stopped master container until copied out.
 
 ## Start and collect a run
 
 Start one master and two worker nodes:
 
 ```sh
-docker compose up --build --scale worker=2
+docker compose build
+docker compose create --scale worker=2
+docker compose cp --index 1 local-assets/models/eng.traineddata worker:/app/local-assets/models/eng.traineddata
+docker compose cp --index 2 local-assets/models/eng.traineddata worker:/app/local-assets/models/eng.traineddata
+docker compose up --no-recreate --scale worker=2
 ```
+
+Repeat the copy command for each worker replica, using its 1-based index. Recreated containers need the model copied again. Do not publish containers containing the supplied model.
 
 Set `N_WORKERS` in `.env` to the number of child processes each worker node should start (from 1 to 32). Set the replica count with `--scale worker=N`. For example, two worker nodes with three child processes each use `N_WORKERS=3` and `--scale worker=2`. The master currently accepts at most 32 active process identities across the cluster, so keep the product of replicas and processes per node at or below 32.
 
@@ -42,7 +49,7 @@ Do not treat this setup as the stopped-worker recovery demonstration yet: master
 
 ## Deploy on separate school-cloud machines later
 
-Build or transfer the same `parallel-ocr-pipeline:local` image to each VM. Start the master with its own read-only dataset mount and publish TCP port 5000. Start worker containers with `MASTER_HOST` set to the master's reachable private IP or DNS name and `MASTER_PORT=5000`; set `N_WORKERS` independently on each worker VM. Permit worker-to-master traffic on that port. Only the master VM/container receives the image dataset, and results are copied from the master container after completion. This uses the same Pyro application protocol without shared folders or volumes. Cloud-specific firewall and VM provisioning details depend on the school's platform and will be filled in after access is provided.
+Build or transfer the same `parallel-ocr-pipeline:local` image to each VM. Start the master with its own read-only dataset mount and publish TCP port 5000. Copy the supplied model into each worker container before starting it. Start worker containers with `MASTER_HOST` set to the master's reachable private IP or DNS name and `MASTER_PORT=5000`; set `N_WORKERS` independently on each worker VM. Permit worker-to-master traffic on that port. Only the master VM/container receives the image dataset, and results are copied from the master container after completion. This uses the same Pyro application protocol without shared folders or volumes. Cloud-specific firewall and VM provisioning details depend on the school's platform and will be filled in after access is provided.
 
 ## Run source checks on Linux
 

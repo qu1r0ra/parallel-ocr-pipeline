@@ -100,9 +100,16 @@ def render_word(word: str) -> Image.Image:
 
 
 def fake_tesseract(directory: Path, body: str) -> Path:
-    """Create a fake tesseract.cmd running ``body`` (cmd.exe batch lines)."""
-    script = directory / "fake-tesseract.cmd"
-    script.write_text("@echo off\r\n" + body.replace("\n", "\r\n") + "\r\n", encoding="ascii")
+    """Create a platform-appropriate fake Tesseract executable."""
+    if sys.platform == "win32":
+        script = directory / "fake-tesseract.cmd"
+        script.write_text("@echo off\r\n" + body.replace("\n", "\r\n") + "\r\n", encoding="ascii")
+    else:
+        script = directory / "fake-tesseract"
+        script.write_text(
+            "#!/bin/sh\n" + body.replace("exit /b ", "exit ") + "\n", encoding="ascii"
+        )
+        script.chmod(0o755)
     return script
 
 
