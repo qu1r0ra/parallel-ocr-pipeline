@@ -20,11 +20,14 @@ MASTER_SCRIPT = REPOSITORY_ROOT / "scripts" / "run_master.py"
 
 
 class FixedTextRecognizer:
-    """Return fixed multiline text so the network test does not need Tesseract."""
+    """Return marker-specific text so the network test can check image association."""
 
     def recognize(self, image: Image.Image, /) -> str:
-        assert image.getpixel((0, 0)) == (17, 0, 0)
-        return 'first, "quoted" line\nsecond line'
+        marker = image.getpixel((0, 0))
+        if marker == (17, 0, 0):
+            return 'first, "quoted" line\nsecond line'
+        assert marker == (23, 0, 0)
+        return "second image result"
 
 
 def _worker_child(config_path: str) -> None:
@@ -102,6 +105,7 @@ def test_worker_process_receives_image_over_pyro_recognizes_and_writes_csv(
     images = tmp_path / "images"
     images.mkdir()
     _write_image(images / "one.png")
+    _write_image(images / "two.png", marker=23)
     master, port, _ = _start_master(tmp_path, images)
     context = multiprocessing.get_context("spawn")
     worker = context.Process(
@@ -127,14 +131,17 @@ def test_worker_process_receives_image_over_pyro_recognizes_and_writes_csv(
             master.communicate()
 
     assert status == 0, stderr
-    assert "Completed 1 image" in stdout
+    assert "Completed 2 image" in stdout
     with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
-    assert len(rows) == 1
+    assert len(rows) == 2
     assert rows[0]["image_id"] == "1"
     assert rows[0]["filename"] == "one.png"
     assert rows[0]["text"] == 'first, "quoted" line\nsecond line'
-    assert float(rows[0]["processing_time_ms"]) >= 0
+    assert rows[1]["image_id"] == "2"
+    assert rows[1]["filename"] == "two.png"
+    assert rows[1]["text"] == "second image result"
+    assert all(float(row["processing_time_ms"]) >= 0 for row in rows)
     assert not (tmp_path / "ocr_results.partial.csv").exists()
     assert not (tmp_path / "ocr_failures.csv").exists()
 
