@@ -22,8 +22,8 @@ The accepted implementation boundaries and failure behavior remain in the [OCR c
 
 ## MP2 handoff
 
-The agreed distributed design and provisional responsibilities are recorded in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). They build on the submitted MP1 implementation. The MP1 split above is historical and does not finalize MP2 ownership.
+The agreed design, responsibilities, and live dependency map are in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). The partners reviewed the shared contract and agreed to the split: Imman leads master recovery (#24); Quirora leads workers and deployment (#25) and local resource-dependent validation. Both contribute to integration, benchmarking, and deliverables. The MP1 split above is historical.
 
-Quirora will begin earlier and handle the initial local container/resource-dependent validation. Imman's proposed master-side work remains subject to the partners' agreement. Review the shared contract and approved ticket dependencies before starting independent implementation. No message or assignment has been sent to Imman.
+The shared RPC foundation (#23) and worker/container implementation (#25) are merged. A local Ubuntu run processed the supplied 100 images with one master and two worker containers; preliminary recognition evidence is recorded in [#26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26). Master recovery (#24) remains open. Integrated stopped-worker acceptance (#26) follows #24, then matched benchmarking and deliverables (#27). Cloud access and benchmark ranges remain unconfirmed.
 
-Use the [MP2 development guide](agents/mp2-development.md) for contributor entry points. The spec records the owner-supplied deadline, deliverables, local-first/cloud-later plan, and deferred benchmark choices.
+Use the [MP2 development guide](agents/mp2-development.md) for contributor entry points and the live issues for current status.

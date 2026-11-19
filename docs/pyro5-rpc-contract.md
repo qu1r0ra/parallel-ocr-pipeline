@@ -1,13 +1,13 @@
 # MP2 direct Pyro5 RPC and lifecycle contract
 
-This document defines the first implementation slice from issue #23. The parent design remains [MP2 spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22); this contract records the boundary both partners can review before dependent work begins.
+This document records the shared RPC boundary established in issue #23. The accepted design is in [MP2 spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22); check the live tickets for implementation status.
 
 ## Topology and startup
 
 - The master starts one Pyro5 `Daemon` bound to `0.0.0.0:<port>` and registers object ID `ocr.master`.
 - A worker constructs the direct URI `PYRO:ocr.master@<master_host>:<master_port>`. There is no name server, worker-side daemon, callback, shared memory, or shared volume.
 - The master reads and enumerates image files. It sends one encoded image byte payload per `get_work` request; workers receive no source path or labels.
-- For this first slice, `n_workers` must be `1`. The config value is validated but process fan-out belongs to issue #25.
+- A worker node starts the configured `n_workers` child processes. Each process owns its proxy and requests one image at a time.
 - RPC calls have a 20-second timeout. The worker makes up to two explicit attempts (one retry) with the same request ID or result attempt token, with Pyro's automatic retries disabled. Each process may hold one active image assignment at a time; the master caps active process identities at 32.
 
 ## Identity and messages
@@ -37,7 +37,7 @@ The master accepts `submit_result(node_id, process_id, request_id, attempt_token
 
 The master orders input files deterministically and assigns sequential integer IDs beginning at 1. It writes `ocr_results.csv` with fields `image_id,filename,text,processing_time_ms` only when every input image has a successful result. CSV escaping is handled by Python's CSV writer. Before processing starts, an existing complete CSV is moved to `ocr_results.previous.csv`. A successful run replaces it with the new complete CSV and removes the backup. A failed or interrupted run preserves the backup and writes successful rows to `ocr_results.partial.csv` plus failures/incomplete work to `ocr_failures.csv`; it leaves no current-run `ocr_results.csv`.
 
-After all results arrive, the worker makes another pull and receives `shutdown`; the daemon exits its request loop and the worker exits normally. A master with no connecting worker stops after 60 seconds. A connected worker that makes no image/result progress for 180 seconds stops the master; repeated `wait` polling does not reset that deadline. Those deadlines bound the first slice; reassignment and stronger multi-node lifecycle coordination are follow-on work.
+After all results arrive, the worker makes another pull and receives `shutdown`; the daemon exits its request loop and the worker exits normally. A master with no connecting worker stops after 60 seconds. A connected worker that makes no image/result progress for 180 seconds stops the master; repeated `wait` polling does not reset that deadline. These are current basic-master bounds; reassignment and stronger multi-node lifecycle coordination are tracked in issue #24.
 
 ## Local development
 

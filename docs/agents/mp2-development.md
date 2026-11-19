@@ -1,6 +1,6 @@
 # MP2 development
 
-The authoritative implementation design is [Build the MP2 distributed OCR pipeline (#22)](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). Read its full body and the relevant approved child ticket before implementation or review. The parent owns the accepted architecture, recovery and output behavior, testing boundary, scope, and deferred experimental choices. Use its approved execution map and native issue relationships for blockers and work order; provisional responsibilities do not finalize partner assignments.
+The authoritative implementation design is [Build the MP2 distributed OCR pipeline (#22)](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). Read its full body and the relevant approved child ticket before implementation or review. The parent owns the accepted architecture, recovery and output behavior, testing boundary, scope, and deferred experimental choices. Use its approved execution map and native issue relationships for blockers and work order.
 
 For course requirements, use the [MP2 handout summary](../requirements-mp2.md). Keep assignment requirements distinct from implementation choices recorded in the spec.
 
@@ -12,6 +12,6 @@ Reuse the image-to-text recognition boundary, recognition evaluation, determinis
 
 ## Work and evidence
 
-Use the live parent and child issues for implementation state and dependencies. Documentation publication does not establish that containers, distributed recovery, or cloud deployment work. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
+Use the live parent and child issues for implementation state and dependencies. Distinguish the successful local container run from integrated recovery and cloud evidence. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
 
-Use the [team handoff](../team-handoff.md) for phase context. MP2 responsibilities remain provisional until the partners settle them. Local container testing can proceed before school-cloud access; cloud provisioning and benchmark ranges remain deferred as recorded in the spec.
+Use the [team handoff](../team-handoff.md) for phase context. Local container testing is available on the Ubuntu laptop; cloud provisioning and benchmark ranges remain deferred as recorded in the spec.
