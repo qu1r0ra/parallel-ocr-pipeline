@@ -42,7 +42,7 @@ MAX_TEXT_CHARS = 1_000_000
 MAX_DIAGNOSTIC_CHARS = 2_000
 MAX_ACTIVE_WORKERS = 32
 RPC_TIMEOUT_SECONDS = 20.0
-RPC_ATTEMPTS = 3
+RPC_ATTEMPTS = 2
 RPC_RETRY_DELAY_SECONDS = 0.2
 WORK_POLL_SECONDS = 0.2
 MASTER_STARTUP_TIMEOUT_SECONDS = 60.0
@@ -82,13 +82,13 @@ class MasterCoordinator:
             self._available.put_nowait(image)
 
         self._condition = threading.Condition()
-        self._requests: dict[tuple[str, str], dict[str, Any]] = {}
-        self._building_requests: set[tuple[str, str]] = set()
+        self._requests: dict[tuple[str, str, str], dict[str, Any]] = {}
+        self._building_requests: set[tuple[str, str, str]] = set()
         self._assignments: dict[str, _Assignment] = {}
-        self._active_by_process: dict[str, str] = {}
+        self._active_by_process: dict[tuple[str, str], str] = {}
         self._records: dict[int, dict[str, Any]] = {}
         self._failures: dict[int, dict[str, Any]] = {}
-        self._result_acks: dict[tuple[str, str], tuple[dict[str, Any], dict[str, Any]]] = {}
+        self._result_acks: dict[tuple[str, str, str], tuple[dict[str, Any], dict[str, Any]]] = {}
         self._stop_event = threading.Event()
         self._created_at = time.monotonic()
         self._last_progress = self._created_at
@@ -103,7 +103,8 @@ class MasterCoordinator:
         if not all(_valid_identifier(value) for value in (node_id, process_id, request_id)):
             return _rejected("node_id, process_id, and request_id must be bounded identifiers")
 
-        key = (process_id, request_id)
+        key = (node_id, process_id, request_id)
+        process_key = (node_id, process_id)
         with self._condition:
             while key in self._building_requests:
                 self._condition.wait(timeout=RPC_TIMEOUT_SECONDS)
@@ -114,7 +115,7 @@ class MasterCoordinator:
             if self._stop_event.is_set():
                 return {"status": "shutdown"}
 
-            if process_id in self._active_by_process:
+            if process_key in self._active_by_process:
                 response = {"status": "wait"}
                 self._requests[key] = response
                 return response.copy()
@@ -142,7 +143,7 @@ class MasterCoordinator:
                 token=uuid.uuid4().hex,
             )
             self._assignments[assignment.token] = assignment
-            self._active_by_process[process_id] = assignment.token
+            self._active_by_process[process_key] = assignment.token
             self._building_requests.add(key)
             self._worker_seen = True
             self._last_progress = time.monotonic()
@@ -159,7 +160,7 @@ class MasterCoordinator:
                 }
                 assignment.outcome = {"status": "source_failure"}
                 del self._assignments[assignment.token]
-                self._active_by_process.pop(assignment.process_id, None)
+                self._active_by_process.pop((assignment.node_id, assignment.process_id), None)
                 self._last_progress = time.monotonic()
             else:
                 self._last_progress = time.monotonic()
@@ -186,7 +187,7 @@ class MasterCoordinator:
         if normalized is None:
             return _rejected("outcome has an invalid shape or exceeds the application bounds")
 
-        ack_key = (process_id, request_id)
+        ack_key = (node_id, process_id, request_id)
         with self._condition:
             previous = self._result_acks.get(ack_key)
             if previous is not None:
@@ -226,9 +227,9 @@ class MasterCoordinator:
             ack = {"status": "accepted", "duplicate": False}
             self._result_acks[ack_key] = (normalized, {"attempt_token": attempt_token})
             self._assignments.pop(attempt_token, None)
-            self._active_by_process.pop(process_id, None)
+            self._active_by_process.pop((node_id, process_id), None)
             # The result closes the request; discard its potentially large image payload.
-            self._requests[(process_id, request_id)] = {"status": "completed"}
+            self._requests[(node_id, process_id, request_id)] = {"status": "completed"}
             self._last_progress = time.monotonic()
             self._condition.notify_all()
             return ack
@@ -250,6 +251,14 @@ class MasterCoordinator:
         self._stop_event.set()
         with self._condition:
             self._condition.notify_all()
+
+    def prepare_outputs(self) -> None:
+        """Move an older complete CSV aside before starting this workload."""
+        self._config.output_dir.mkdir(parents=True, exist_ok=True)
+        results_path = self._config.output_dir / "ocr_results.csv"
+        previous_path = self._config.output_dir / "ocr_results.previous.csv"
+        if results_path.exists():
+            results_path.replace(previous_path)
 
     def write_outputs(self) -> bool:
         """Publish complete CSV only when every discovered image succeeded."""
@@ -280,12 +289,11 @@ class MasterCoordinator:
             _write_csv_atomic(results_path, CSV_FIELDS, records)
             _remove_if_exists(partial_path)
             _remove_if_exists(failures_path)
+            _remove_if_exists(output_dir / "ocr_results.previous.csv")
             return True
 
         _write_csv_atomic(partial_path, CSV_FIELDS, records)
         _write_csv_atomic(failures_path, FAILURE_CSV_FIELDS, failures)
-        # Do not leave a previous run's complete-looking file beside this incomplete run.
-        _remove_if_exists(results_path)
         return False
 
     def _read_assignment(self, assignment: _Assignment) -> dict[str, Any]:
@@ -324,6 +332,12 @@ def run_master(config_path: str | Path) -> int:
         coordinator = MasterCoordinator(config)
     except (DistributedConfigError, ConfigError) as error:
         print(f"Master configuration error: {error}", file=sys.stderr)
+        return 2
+
+    try:
+        coordinator.prepare_outputs()
+    except OSError as error:
+        print(f"Master cannot prepare output files: {error}", file=sys.stderr)
         return 2
 
     daemon: Pyro5.api.Daemon | None = None
@@ -532,14 +546,18 @@ def _validate_outcome(value: object) -> dict[str, Any] | None:
             or len(text) > MAX_TEXT_CHARS
             or not isinstance(processing_time, (int, float))
             or isinstance(processing_time, bool)
-            or not math.isfinite(processing_time)
-            or processing_time < 0
         ):
+            return None
+        try:
+            processing_time_ms = float(processing_time)
+        except OverflowError, ValueError:
+            return None
+        if not math.isfinite(processing_time_ms) or processing_time_ms < 0:
             return None
         return {
             "status": "success",
             "text": text,
-            "processing_time_ms": float(processing_time),
+            "processing_time_ms": processing_time_ms,
         }
     if status == "failure" and set(value) == _FAILURE_FIELDS:
         stage = value.get("stage")

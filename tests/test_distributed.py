@@ -106,6 +106,7 @@ def test_worker_process_receives_image_over_pyro_recognizes_and_writes_csv(
     images.mkdir()
     _write_image(images / "one.png")
     _write_image(images / "two.png", marker=23)
+    (tmp_path / "ocr_results.csv").write_text("previous complete output\n", encoding="utf-8")
     master, port, _ = _start_master(tmp_path, images)
     context = multiprocessing.get_context("spawn")
     worker = context.Process(
@@ -144,6 +145,7 @@ def test_worker_process_receives_image_over_pyro_recognizes_and_writes_csv(
     assert all(float(row["processing_time_ms"]) >= 0 for row in rows)
     assert not (tmp_path / "ocr_results.partial.csv").exists()
     assert not (tmp_path / "ocr_failures.csv").exists()
+    assert not (tmp_path / "ocr_results.previous.csv").exists()
 
 
 def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
@@ -153,6 +155,7 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
     images.mkdir()
     image_path = images / "one.png"
     _write_image(image_path)
+    _write_image(images / "two.png", marker=23)
     master, port, _ = _start_master(tmp_path, images)
     uri = f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}"
     proxy = Proxy(uri)
@@ -173,6 +176,20 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
             ["not", "a", "result"],
         )
         assert invalid_outcome["status"] == "rejected"
+        huge_processing_time = _rpc(
+            proxy,
+            "submit_result",
+            "node",
+            "process",
+            "request",
+            "token",
+            {
+                "status": "success",
+                "text": "invalid",
+                "processing_time_ms": 10**400,
+            },
+        )
+        assert huge_processing_time["status"] == "rejected"
 
         first = _rpc(proxy, "get_work", "node", "process", "request")
         replay = _rpc(proxy, "get_work", "node", "process", "request")
@@ -180,6 +197,10 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
         assert replay["status"] == "work"
         assert replay["attempt_token"] == first["attempt_token"]
         assert tobytes(first["image_bytes"]) == image_path.read_bytes()
+        other_node_first = _rpc(proxy, "get_work", "other-node", "process", "request")
+        assert other_node_first["status"] == "work"
+        assert other_node_first["attempt_token"] != first["attempt_token"]
+        assert other_node_first["image_id"] != first["image_id"]
         assert _rpc(proxy, "get_work", "node", "process", "parallel") == {"status": "wait"}
 
         outcome = {
@@ -228,9 +249,49 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
         )
         assert accepted == {"status": "accepted", "duplicate": False}
         assert duplicate == {"status": "accepted", "duplicate": True}
+        cross_node_duplicate = _rpc(
+            proxy,
+            "submit_result",
+            "other-node",
+            "process",
+            first["request_id"],
+            first["attempt_token"],
+            outcome,
+        )
+        assert cross_node_duplicate["status"] == "rejected"
+
+        other_outcome = {
+            "status": "success",
+            "text": "second recognized",
+            "processing_time_ms": 2.5,
+        }
+        other_accepted = _rpc(
+            proxy,
+            "submit_result",
+            "other-node",
+            "process",
+            other_node_first["request_id"],
+            other_node_first["attempt_token"],
+            other_outcome,
+        )
+        assert other_accepted == {"status": "accepted", "duplicate": False}
+        other_duplicate = _rpc(
+            proxy,
+            "submit_result",
+            "other-node",
+            "process",
+            other_node_first["request_id"],
+            other_node_first["attempt_token"],
+            other_outcome,
+        )
+        assert other_duplicate == {"status": "accepted", "duplicate": True}
         completed = _rpc(proxy, "get_work", "node", "process", first["request_id"])
+        other_completed = _rpc(
+            proxy, "get_work", "other-node", "process", other_node_first["request_id"]
+        )
         shutdown = _rpc(proxy, "get_work", "node", "process", "next")
         assert completed["status"] == "completed"
+        assert other_completed["status"] == "completed"
         assert shutdown["status"] == "shutdown"
         status, _, stderr = _finish_master(master)
     finally:
@@ -243,13 +304,16 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
     with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
     assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
-        ("1", "one.png", "recognized")
+        ("1", "one.png", "recognized"),
+        ("2", "two.png", "second recognized"),
     ]
 
 
 def test_master_skips_oversized_image_and_does_not_publish_complete_csv(tmp_path: Path) -> None:
     images = tmp_path / "images"
     images.mkdir()
+    previous_output = b"previous complete output\n"
+    (tmp_path / "ocr_results.csv").write_bytes(previous_output)
     oversized = images / "large.png"
     with oversized.open("wb") as stream:
         stream.truncate(MAX_IMAGE_BYTES + 1)
@@ -273,6 +337,7 @@ def test_master_skips_oversized_image_and_does_not_publish_complete_csv(tmp_path
     assert status == 1
     assert "1 failed" in stderr
     assert not (tmp_path / "ocr_results.csv").exists()
+    assert (tmp_path / "ocr_results.previous.csv").read_bytes() == previous_output
     assert (tmp_path / "ocr_results.partial.csv").exists()
     with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
         failures = list(csv.DictReader(stream))

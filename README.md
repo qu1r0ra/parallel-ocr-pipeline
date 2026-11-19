@@ -78,7 +78,7 @@ just master
 just worker
 ```
 
-The master writes `ocr_results.csv` beside its config only when every discovered image succeeds. Failed or interrupted workloads write `ocr_results.partial.csv` and `ocr_failures.csv` instead. The initial implementation requires `n_workers=1`; #25 adds configured worker-process scaling and containers, while #24 adds worker-failure reassignment. Both machines must have Python dependencies installed and the master's port open between them.
+The master writes `ocr_results.csv` beside its config only when every discovered image succeeds. Before processing, it moves an older complete CSV to `ocr_results.previous.csv`; success replaces it with the new output, while failure preserves the backup and writes `ocr_results.partial.csv` and `ocr_failures.csv`. The initial implementation requires `n_workers=1`; #25 adds configured worker-process scaling and containers, while #24 adds worker-failure reassignment. Both machines must have Python dependencies installed and the master's port open between them.
 
 ## Verify and benchmark
 
