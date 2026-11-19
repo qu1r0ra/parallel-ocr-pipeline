@@ -63,10 +63,6 @@ worker config="worker_config.txt":
 compose-config:
     docker compose config
 
-# Start the master and the requested number of worker-node replicas.
-compose-up worker_nodes="2":
-    docker compose up --build --scale worker={{worker_nodes}}
-
 # Stop the local distributed cluster.
 compose-down:
     docker compose down
