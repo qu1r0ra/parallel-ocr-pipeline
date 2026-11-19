@@ -5,13 +5,17 @@ from __future__ import annotations
 import csv
 import io
 import math
+import multiprocessing
+import multiprocessing.process
 import os
 import queue
 import re
+import signal
 import socket
 import sys
 import threading
 import time
+import traceback
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -33,7 +37,7 @@ from parallel_ocr_pipeline.distributed_config import (
     load_master_config,
     load_worker_config,
 )
-from parallel_ocr_pipeline.recognizer import TesseractRecognizer
+from parallel_ocr_pipeline.recognizer import RecognitionTimeoutError, TesseractRecognizer
 
 MASTER_OBJECT_ID = "ocr.master"
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
@@ -376,87 +380,187 @@ def run_worker(
     *,
     recognizer_factory: Callable[[], Any] = TesseractRecognizer,
 ) -> int:
-    """Pull one image at a time from the direct URI and return its result/failure."""
+    """Start and supervise the configured spawn-based worker processes."""
     try:
         config = load_worker_config(config_path)
     except DistributedConfigError as error:
         print(f"Worker configuration error: {error}", file=sys.stderr)
         return 2
-    if config.n_workers != 1:
-        print(
-            "This first distributed slice accepts n_workers=1; configurable per-node "
-            "process scaling belongs to the next implementation slice.",
-            file=sys.stderr,
-        )
-        return 2
-
-    process_id = f"{os.getpid()}:{uuid.uuid4().hex}"
+    context = multiprocessing.get_context("spawn")
+    stop_event = context.Event()
     node_id = socket.gethostname()
+    children = [
+        context.Process(
+            name=f"ocr-worker-{index + 1}",
+            target=_worker_process_entry,
+            args=(config, node_id, recognizer_factory, stop_event),
+        )
+        for index in range(config.n_workers)
+    ]
+    started: list[multiprocessing.process.BaseProcess] = []
+    failed = False
+    interrupted = False
+    termination_signal: int | None = None
+
+    def handle_sigterm(signum: int, _frame: Any) -> None:
+        nonlocal interrupted, termination_signal
+        interrupted = True
+        termination_signal = signum
+
+    previous_sigterm_handler = signal.signal(signal.SIGTERM, handle_sigterm)
+    try:
+        for child in children:
+            if interrupted:
+                break
+            child.start()
+            started.append(child)
+
+        running = set(started)
+        while running and not interrupted:
+            for child in tuple(running):
+                child.join(timeout=0)
+                if child.exitcode is None:
+                    continue
+                running.remove(child)
+                if child.exitcode != 0:
+                    failed = True
+                    stop_event.set()
+                    break
+            if failed:
+                break
+            if running:
+                time.sleep(0.05)
+    except KeyboardInterrupt:
+        interrupted = True
+        stop_event.set()
+    except (OSError, RuntimeError, ValueError) as error:
+        print(f"Cannot start worker processes: {error}", file=sys.stderr)
+        failed = True
+        stop_event.set()
+    finally:
+        if failed or interrupted:
+            stop_event.set()
+        _join_worker_processes(started)
+        signal.signal(signal.SIGTERM, previous_sigterm_handler)
+
+    if termination_signal is not None:
+        return 128 + termination_signal
+    return 130 if interrupted else 1 if failed else 0
+
+
+def _worker_process_entry(
+    config: WorkerConfig,
+    node_id: str,
+    recognizer_factory: Callable[[], Any],
+    stop_event: Any,
+) -> None:
+    """Initialize process-owned OCR and RPC resources, then run one pull loop."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+        raise SystemExit(_run_worker_process(config, node_id, recognizer_factory, stop_event))
+    except Exception as error:
+        print(
+            f"Worker process failed: {type(error).__name__}: {error}\n{traceback.format_exc()}",
+            file=sys.stderr,
+            flush=True,
+        )
+        raise SystemExit(1) from error
+
+
+def _run_worker_process(
+    config: WorkerConfig,
+    node_id: str,
+    recognizer_factory: Callable[[], Any],
+    stop_event: Any,
+) -> int:
+    """Pull and acknowledge one image at a time using process-local resources."""
+    process_id = f"{os.getpid()}:{uuid.uuid4().hex}"
+    os.environ.setdefault("OMP_THREAD_LIMIT", "1")
     uri = _master_uri(config)
     Pyro5.api.config.MAX_MESSAGE_SIZE = MAX_RPC_MESSAGE_BYTES  # pyright: ignore[reportAttributeAccessIssue]
-    recognizer = recognizer_factory()
+    proxy = Proxy(uri)
+    proxy._pyroTimeout = RPC_TIMEOUT_SECONDS
+    proxy._pyroMaxRetries = 0
+    try:
+        recognizer = recognizer_factory()
+        while not stop_event.is_set():
+            request_id = uuid.uuid4().hex
+            try:
+                response = _rpc_call(proxy, "get_work", node_id, process_id, request_id)
+            except CommunicationError as error:
+                print(f"Cannot request work from master: {error}", file=sys.stderr)
+                return 1
 
-    while True:
-        request_id = uuid.uuid4().hex
-        try:
-            response = _rpc_call(uri, "get_work", node_id, process_id, request_id)
-        except CommunicationError as error:
-            print(f"Cannot request work from master: {error}", file=sys.stderr)
-            return 1
+            status = response.get("status")
+            if status == "shutdown":
+                return 0
+            if status == "wait":
+                stop_event.wait(WORK_POLL_SECONDS)
+                continue
+            if status == "skip":
+                continue
+            if status == "rejected":
+                print(
+                    f"Master rejected work request: {response.get('message', 'invalid request')}",
+                    file=sys.stderr,
+                )
+                return 1
+            if status != "work":
+                print(f"Master returned an invalid work response: {status!r}", file=sys.stderr)
+                return 1
 
-        status = response.get("status")
-        if status == "shutdown":
-            return 0
-        if status == "wait":
-            time.sleep(WORK_POLL_SECONDS)
-            continue
-        if status == "skip":
-            continue
-        if status == "rejected":
-            print(
-                f"Master rejected work request: {response.get('message', 'invalid request')}",
-                file=sys.stderr,
-            )
-            return 1
-        if status != "work":
-            print(f"Master returned an invalid work response: {status!r}", file=sys.stderr)
-            return 1
+            assignment_request_id = response.get("request_id")
+            attempt_token = response.get("attempt_token")
+            image_id = response.get("image_id")
+            filename = response.get("filename")
+            if (
+                not isinstance(assignment_request_id, str)
+                or assignment_request_id != request_id
+                or not isinstance(attempt_token, str)
+                or not isinstance(image_id, int)
+                or not isinstance(filename, str)
+            ):
+                print("Master returned malformed assignment metadata.", file=sys.stderr)
+                return 1
 
-        assignment_request_id = response.get("request_id")
-        attempt_token = response.get("attempt_token")
-        image_id = response.get("image_id")
-        filename = response.get("filename")
-        if (
-            not isinstance(assignment_request_id, str)
-            or assignment_request_id != request_id
-            or not isinstance(attempt_token, str)
-            or not isinstance(image_id, int)
-            or not isinstance(filename, str)
-        ):
-            print("Master returned malformed assignment metadata.", file=sys.stderr)
-            return 1
+            outcome = _recognize_assignment(response, recognizer)
+            try:
+                acknowledgment = _rpc_call(
+                    proxy,
+                    "submit_result",
+                    node_id,
+                    process_id,
+                    request_id,
+                    attempt_token,
+                    outcome,
+                )
+            except CommunicationError as error:
+                print(f"Cannot submit result for image {image_id}: {error}", file=sys.stderr)
+                return 1
+            if acknowledgment.get("status") != "accepted":
+                print(
+                    f"Master rejected result for image {image_id}: "
+                    f"{acknowledgment.get('message', 'invalid acknowledgment')}",
+                    file=sys.stderr,
+                )
+                return 1
+        return 0
+    finally:
+        proxy._pyroRelease()
 
-        outcome = _recognize_assignment(response, recognizer)
-        try:
-            acknowledgment = _rpc_call(
-                uri,
-                "submit_result",
-                node_id,
-                process_id,
-                request_id,
-                attempt_token,
-                outcome,
-            )
-        except CommunicationError as error:
-            print(f"Cannot submit result for image {image_id}: {error}", file=sys.stderr)
-            return 1
-        if acknowledgment.get("status") != "accepted":
-            print(
-                f"Master rejected result for image {image_id}: "
-                f"{acknowledgment.get('message', 'invalid acknowledgment')}",
-                file=sys.stderr,
-            )
-            return 1
+
+def _join_worker_processes(children: list[multiprocessing.process.BaseProcess]) -> None:
+    """Join children and bound cleanup if a sibling or operator stopped the node."""
+    graceful_deadline = time.monotonic() + RPC_TIMEOUT_SECONDS * RPC_ATTEMPTS + 1
+    for child in children:
+        remaining = max(0.0, graceful_deadline - time.monotonic())
+        child.join(timeout=remaining)
+    for child in children:
+        if child.is_alive():
+            child.terminate()
+            child.join(timeout=5)
+        if child.exitcode is not None:
+            child.close()
 
 
 def _recognize_assignment(response: dict[str, Any], recognizer: Any) -> dict[str, Any]:
@@ -483,7 +587,15 @@ def _recognize_assignment(response: dict[str, Any], recognizer: Any) -> dict[str
     with image:
         try:
             started = time.perf_counter_ns()
-            text = recognizer.recognize(image)
+            for attempt in range(2):
+                try:
+                    text = recognizer.recognize(image)
+                    break
+                except RecognitionTimeoutError:
+                    if attempt == 1:
+                        raise
+            else:
+                raise RuntimeError("recognition did not produce a result")
             elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000
         except Exception as error:  # noqa: BLE001 - recognizer failures become per-image outcomes
             return _failure_outcome("recognition", image_id, error)
@@ -508,13 +620,10 @@ def _failure_outcome(stage: str, image_id: object, error: Exception) -> dict[str
     }
 
 
-def _rpc_call(uri: str, method: str, *args: object) -> dict[str, Any]:
-    """Retry one mutating or read RPC explicitly with the same idempotency key."""
+def _rpc_call(proxy: Proxy, method: str, *args: object) -> dict[str, Any]:
+    """Retry one RPC explicitly with the same idempotency key on a child-owned proxy."""
     last_error: CommunicationError | None = None
     for attempt in range(RPC_ATTEMPTS):
-        proxy = Proxy(uri)
-        proxy._pyroTimeout = RPC_TIMEOUT_SECONDS
-        proxy._pyroMaxRetries = 0
         try:
             result = getattr(proxy, method)(*args)
             if not isinstance(result, dict):
@@ -522,10 +631,9 @@ def _rpc_call(uri: str, method: str, *args: object) -> dict[str, Any]:
             return result
         except CommunicationError as error:
             last_error = error
+            proxy._pyroRelease()
             if attempt + 1 < RPC_ATTEMPTS:
                 time.sleep(RPC_RETRY_DELAY_SECONDS * (attempt + 1))
-        finally:
-            proxy._pyroRelease()
     assert last_error is not None
     raise last_error
 

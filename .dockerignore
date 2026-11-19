@@ -1,0 +1,13 @@
+.git
+.venv
+.pytest_cache
+.ruff_cache
+.basedpyright
+__pycache__
+*.py[cod]
+local-assets
+results
+ocr_results.csv
+ocr_results.partial.csv
+ocr_failures.csv
+*.zip

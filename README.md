@@ -1,6 +1,6 @@
 # Parallel OCR Pipeline
 
-A native Windows OCR pipeline for CSC611M Machine Project 1, now extended with the first direct-Pyro5 master-to-worker workload for Machine Project 2. The MP1 application remains available alongside the distributed commands. The initial MP2 slice supports one worker process; process scaling, worker recovery, and container setup are being added in their follow-on issues.
+A native Windows OCR pipeline for CSC611M Machine Project 1, now extended with a direct-Pyro5 master-to-worker workload for Machine Project 2. The MP1 application remains available alongside the distributed commands. MP2 worker nodes can run multiple spawned worker processes and can be deployed as isolated Docker Compose services. Master-side recovery is still being implemented under #24.
 
 ## Start on Windows
 
@@ -78,7 +78,7 @@ just master
 just worker
 ```
 
-The master writes `ocr_results.csv` beside its config only when every discovered image succeeds. Before processing, it moves an older complete CSV to `ocr_results.previous.csv`; success replaces it with the new output, while failure preserves the backup and writes `ocr_results.partial.csv` and `ocr_failures.csv`. The initial implementation requires `n_workers=1`; #25 adds configured worker-process scaling and containers, while #24 adds worker-failure reassignment. Both machines must have Python dependencies installed and the master's port open between them.
+The master writes `ocr_results.csv` beside its config only when every discovered image succeeds. Before processing, it moves an older complete CSV to `ocr_results.previous.csv`; success replaces it with the new output, while failure preserves the backup and writes `ocr_results.partial.csv` and `ocr_failures.csv`. `n_workers` is the number of spawned child processes on this worker node. For local container deployment and replica scaling, see [`docs/setup-containers.md`](docs/setup-containers.md). Master-side worker-failure reassignment remains in #24.
 
 ## Verify and benchmark
 

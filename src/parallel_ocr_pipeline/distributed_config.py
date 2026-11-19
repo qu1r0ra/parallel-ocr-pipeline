@@ -9,6 +9,7 @@ from pathlib import Path
 _MASTER_KEYS = frozenset({"image_dir", "port"})
 _WORKER_KEYS = frozenset({"master_host", "master_port", "n_workers"})
 _POSITIVE_INTEGER = re.compile(r"[0-9]+\Z")
+MAX_WORKERS_PER_NODE = 32
 
 
 class DistributedConfigError(ValueError):
@@ -68,6 +69,10 @@ def load_worker_config(config_path: str | Path) -> WorkerConfig:
     if worker_count < 1:
         raise DistributedConfigError(
             f"n_workers must be a positive integer, got {worker_count_value!r}."
+        )
+    if worker_count > MAX_WORKERS_PER_NODE:
+        raise DistributedConfigError(
+            f"n_workers must not exceed {MAX_WORKERS_PER_NODE} on one worker node."
         )
 
     return WorkerConfig(

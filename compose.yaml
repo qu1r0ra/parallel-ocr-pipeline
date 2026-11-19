@@ -1,0 +1,32 @@
+services:
+  master:
+    build: .
+    image: parallel-ocr-pipeline:local
+    command: ["python", "scripts/run_container.py", "master"]
+    environment:
+      IMAGE_DIR: /data/images
+      MASTER_PORT: "5000"
+    ports:
+      - "${MASTER_PUBLISH_PORT:-5000}:5000"
+    volumes:
+      - "${HOST_DATASET_DIR:-./local-assets/dataset/images}:/data/images:ro"
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 5000), timeout=2); s.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  worker:
+    build: .
+    image: parallel-ocr-pipeline:local
+    command: ["python", "scripts/run_container.py", "worker"]
+    stop_grace_period: 60s
+    environment:
+      MASTER_HOST: master
+      MASTER_PORT: "5000"
+      N_WORKERS: "${N_WORKERS:-1}"
+    depends_on:
+      master:
+        condition: service_healthy
