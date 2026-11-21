@@ -3,10 +3,12 @@ from __future__ import annotations
 import csv
 import multiprocessing
 import os
+import signal
 import socket
 import subprocess
 import sys
 import time
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +16,11 @@ from PIL import Image
 from Pyro5.api import Proxy
 from serpent import tobytes
 
-from parallel_ocr_pipeline.distributed import MASTER_OBJECT_ID, MAX_IMAGE_BYTES, run_worker
+from parallel_ocr_pipeline.distributed import (
+    MASTER_OBJECT_ID,
+    MAX_IMAGE_BYTES,
+    run_worker,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 MASTER_SCRIPT = REPOSITORY_ROOT / "scripts" / "run_master.py"
@@ -37,12 +43,28 @@ class ProcessIdRecognizer:
         return str(os.getpid())
 
 
+class MarkerThenWaitRecognizer:
+    def __init__(self, marker_path: str) -> None:
+        self._marker_path = Path(marker_path)
+
+    def recognize(self, image: Image.Image, /) -> str:
+        self._marker_path.write_text(str(os.getpid()), encoding="utf-8")
+        time.sleep(30)
+        return "late result"
+
+
 def _worker_child(config_path: str) -> None:
     raise SystemExit(run_worker(config_path, recognizer_factory=FixedTextRecognizer))
 
 
 def _worker_node_with_process_ids(config_path: str) -> None:
     raise SystemExit(run_worker(config_path, recognizer_factory=ProcessIdRecognizer))
+
+
+def _stoppable_worker_node(config_path: str, marker_path: str) -> None:
+    raise SystemExit(
+        run_worker(config_path, recognizer_factory=partial(MarkerThenWaitRecognizer, marker_path))
+    )
 
 
 def _free_port() -> int:
@@ -70,6 +92,63 @@ def _start_master(tmp_path: Path, images: Path) -> tuple[subprocess.Popen[str], 
     process = subprocess.Popen(
         [sys.executable, str(MASTER_SCRIPT), str(config)],
         cwd=REPOSITORY_ROOT,
+        creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    return process, port, config
+
+
+def _start_fast_master(
+    tmp_path: Path,
+    images: Path,
+    *,
+    assignment_timeout: float = 0.2,
+    max_reassignments: int = 2,
+    shutdown_timeout: float = 0.5,
+    startup_timeout: float = 5.0,
+    idle_timeout: float = 2.0,
+    interrupt_marker: Path | None = None,
+) -> tuple[subprocess.Popen[str], int, Path]:
+    port = _free_port()
+    config = tmp_path / "master_config.txt"
+    config.write_text(f"image_dir={images}\nport={port}\n", encoding="utf-8")
+    runner = tmp_path / "fast_master.py"
+    runner_source = (
+        "import sys\n"
+        "from pathlib import Path\n"
+        "from parallel_ocr_pipeline import distributed\n"
+        "distributed.Pyro5.api.config.POLLTIMEOUT = 0.05\n"
+    )
+    if interrupt_marker is not None:
+        runner_source += f"import signal\ninterrupt_marker = Path({str(interrupt_marker)!r})\n"
+    runner_source += (
+        "class FastMasterCoordinator(distributed.MasterCoordinator):\n"
+        "    def __init__(self, config):\n"
+        "        super().__init__(\n"
+        f"            config, assignment_timeout={assignment_timeout!r},\n"
+        f"            max_reassignments={max_reassignments!r},\n"
+        f"            shutdown_timeout={shutdown_timeout!r}, startup_timeout={startup_timeout!r},\n"
+        f"            idle_timeout={idle_timeout!r}\n"
+        "        )\n"
+    )
+    if interrupt_marker is not None:
+        runner_source += (
+            "        self._test_signal_raised = False\n"
+            "    def should_continue(self):\n"
+            "        if interrupt_marker.exists() and not self._test_signal_raised:\n"
+            "            self._test_signal_raised = True\n"
+            "            signal.raise_signal(signal.SIGINT)\n"
+            "        return super().should_continue()\n"
+        )
+    runner_source += "distributed.MasterCoordinator = FastMasterCoordinator\n"
+    runner_source += "raise SystemExit(distributed.run_master(Path(sys.argv[1])))\n"
+    runner.write_text(runner_source, encoding="utf-8")
+    process = subprocess.Popen(
+        [sys.executable, str(runner), str(config)],
+        cwd=REPOSITORY_ROOT,
+        creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -372,8 +451,10 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
             proxy, "get_work", "other-node", "process", other_node_first["request_id"]
         )
         shutdown = _rpc(proxy, "get_work", "node", "process", "next")
+        other_shutdown = _rpc(proxy, "get_work", "other-node", "process", "next")
         assert completed["status"] == "completed"
         assert other_completed["status"] == "completed"
+        assert other_shutdown == {"status": "shutdown"}
         assert shutdown["status"] == "shutdown"
         status, _, stderr = _finish_master(master)
     finally:
@@ -389,6 +470,328 @@ def test_pyro_work_request_replays_same_image_and_result_ack_is_idempotent(
         ("1", "one.png", "recognized"),
         ("2", "two.png", "second recognized"),
     ]
+
+
+def test_expired_assignment_is_reassigned_and_old_request_and_result_are_rejected(
+    tmp_path: Path,
+) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    master, port, _ = _start_fast_master(tmp_path, images)
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        original = _rpc(proxy, "get_work", "stopped-node", "process-1", "request-1")
+        assert original["status"] == "work"
+
+        time.sleep(0.3)
+        replay = _rpc(proxy, "get_work", "stopped-node", "process-1", "request-1")
+        assert replay["status"] == "rejected"
+
+        reassigned = _rpc(proxy, "get_work", "live-node", "process-2", "request-2")
+        assert reassigned["status"] == "work"
+        assert reassigned["image_id"] == original["image_id"]
+        assert reassigned["attempt_token"] != original["attempt_token"]
+
+        stale_result = _rpc(
+            proxy,
+            "submit_result",
+            "stopped-node",
+            "process-1",
+            "request-1",
+            original["attempt_token"],
+            {"status": "success", "text": "stale", "processing_time_ms": 1.0},
+        )
+        assert stale_result["status"] == "rejected"
+
+        accepted = _rpc(
+            proxy,
+            "submit_result",
+            "live-node",
+            "process-2",
+            "request-2",
+            reassigned["attempt_token"],
+            {"status": "success", "text": "recovered", "processing_time_ms": 2.0},
+        )
+        assert accepted == {"status": "accepted", "duplicate": False}
+        shutdown = _rpc(proxy, "get_work", "live-node", "process-2", "request-3")
+        assert shutdown == {"status": "shutdown"}
+        status, _, stderr = _finish_master(master)
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 0, stderr
+    with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
+        ("1", "one.png", "recovered")
+    ]
+
+
+def test_stopped_worker_process_is_reassigned_to_a_live_worker(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    master, port, _ = _start_fast_master(
+        tmp_path, images, assignment_timeout=0.8, shutdown_timeout=5.0
+    )
+    config = _write_worker_config(tmp_path, port)
+    marker = tmp_path / "recognition-started"
+    context = multiprocessing.get_context("spawn")
+    stopped_worker = context.Process(target=_stoppable_worker_node, args=(str(config), str(marker)))
+    live_worker = context.Process(target=_worker_child, args=(str(config),))
+
+    try:
+        _wait_for_server(master, port)
+        stopped_worker.start()
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and not marker.exists():
+            if stopped_worker.exitcode is not None:
+                raise AssertionError(f"stoppable worker exited early: {stopped_worker.exitcode}")
+            time.sleep(0.05)
+        assert marker.exists(), "worker did not begin recognizing its assigned image"
+
+        child_pid = int(marker.read_text(encoding="utf-8"))
+        os.kill(child_pid, signal.SIGTERM)
+        stopped_worker.join(timeout=20)
+        assert not stopped_worker.is_alive(), "worker node did not stop after its child was stopped"
+        assert stopped_worker.exitcode != 0
+
+        live_worker.start()
+        live_worker.join(timeout=20)
+        assert not live_worker.is_alive(), "replacement worker did not terminate"
+        assert live_worker.exitcode == 0
+        status, _, stderr = _finish_master(master)
+    finally:
+        for worker in (stopped_worker, live_worker):
+            if worker.is_alive():
+                worker.terminate()
+                worker.join(timeout=5)
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 0, stderr
+    with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
+        ("1", "one.png", 'first, "quoted" line\nsecond line')
+    ]
+
+
+def test_interrupted_master_sends_shutdown_and_writes_incomplete_output(
+    tmp_path: Path,
+) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    interrupt_marker = tmp_path / "interrupt-master"
+    master, port, _ = _start_fast_master(
+        tmp_path,
+        images,
+        assignment_timeout=60.0,
+        idle_timeout=60.0,
+        shutdown_timeout=5.0,
+        interrupt_marker=interrupt_marker,
+    )
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        assignment = _rpc(proxy, "get_work", "node", "process", "request-1")
+        assert assignment["status"] == "work"
+        interrupt_marker.touch()
+        shutdown = None
+        deadline = time.monotonic() + 5
+        request_number = 2
+        while time.monotonic() < deadline:
+            response = _rpc(proxy, "get_work", "node", "process", f"request-{request_number}")
+            request_number += 1
+            if response["status"] == "shutdown":
+                shutdown = response
+                break
+            assert response["status"] == "wait"
+            time.sleep(0.05)
+        assert shutdown == {"status": "shutdown"}
+        status, _, stderr = _finish_master(master)
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 1
+    assert "Incomplete workload" in stderr
+    assert not (tmp_path / "ocr_results.csv").exists()
+    assert (tmp_path / "ocr_results.partial.csv").exists()
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert [(row["image_id"], row["stage"]) for row in failures] == [("1", "incomplete")]
+
+
+def test_recovery_exhaustion_preserves_partial_and_failure_artifacts(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    prior_output = b"previous complete output\n"
+    (tmp_path / "ocr_results.csv").write_bytes(prior_output)
+    master, port, _ = _start_fast_master(
+        tmp_path, images, assignment_timeout=0.15, max_reassignments=2
+    )
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        for attempt in range(3):
+            node_id = f"node-{attempt}"
+            process_id = f"process-{attempt}"
+            request_id = f"request-{attempt}"
+            assignment = _rpc(proxy, "get_work", node_id, process_id, request_id)
+            assert assignment["status"] == "work"
+            assert assignment["image_id"] == 1
+            time.sleep(0.22)
+
+            if attempt < 2:
+                expired = _rpc(proxy, "get_work", node_id, process_id, request_id)
+                assert expired["status"] == "rejected"
+
+        shutdown = _rpc(proxy, "get_work", "observer", "process", "after-exhaustion")
+        assert shutdown == {"status": "shutdown"}
+        status, _, stderr = _finish_master(master)
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 1
+    assert "0 succeeded, 1 failed" in stderr
+    assert not (tmp_path / "ocr_results.csv").exists()
+    assert (tmp_path / "ocr_results.previous.csv").read_bytes() == prior_output
+    with (tmp_path / "ocr_results.partial.csv").open(encoding="utf-8", newline="") as stream:
+        assert list(csv.DictReader(stream)) == []
+    with (tmp_path / "ocr_failures.csv").open(encoding="utf-8", newline="") as stream:
+        failures = list(csv.DictReader(stream))
+    assert [(row["image_id"], row["filename"], row["stage"]) for row in failures] == [
+        ("1", "one.png", "worker_recovery")
+    ]
+    assert failures[0]["exception_type"] == "AssignmentTimeout"
+
+
+def test_wait_polling_does_not_extend_master_idle_deadline(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    master, port, _ = _start_fast_master(
+        tmp_path,
+        images,
+        assignment_timeout=60.0,
+        idle_timeout=0.35,
+        shutdown_timeout=2.0,
+    )
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        assignment = _rpc(proxy, "get_work", "busy-node", "busy-process", "work-request")
+        assert assignment["status"] == "work"
+        wait_responses = []
+        shutdown = None
+        deadline = time.monotonic() + 5
+        request_number = 1
+        while time.monotonic() < deadline:
+            response = _rpc(
+                proxy,
+                "get_work",
+                "idle-node",
+                "idle-process",
+                f"wait-request-{request_number}",
+            )
+            request_number += 1
+            if response["status"] == "shutdown":
+                shutdown = response
+                break
+            wait_responses.append(response)
+            assert response["status"] == "wait"
+            time.sleep(0.12)
+        assert len(wait_responses) >= 2
+        assert shutdown == {"status": "shutdown"}
+
+        owner_shutdown = _rpc(proxy, "get_work", "busy-node", "busy-process", "after-idle-timeout")
+        assert owner_shutdown == {"status": "shutdown"}
+        status, _, stderr = _finish_master(master)
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 1
+    assert "Incomplete workload" in stderr
+    assert not (tmp_path / "ocr_results.csv").exists()
+    assert (tmp_path / "ocr_results.partial.csv").exists()
+
+
+def test_master_bounds_startup_wait_when_no_worker_connects(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    master, _, _ = _start_fast_master(tmp_path, images, startup_timeout=0.2, shutdown_timeout=0.2)
+
+    started = time.monotonic()
+    status, _, stderr = _finish_master(master)
+    elapsed = time.monotonic() - started
+
+    assert status == 1
+    assert elapsed < 5
+    assert "Incomplete workload" in stderr
+    assert not (tmp_path / "ocr_results.csv").exists()
+    assert (tmp_path / "ocr_results.partial.csv").exists()
+
+
+def test_cancelled_master_bounds_shutdown_if_worker_stays_busy(tmp_path: Path) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    _write_image(images / "one.png")
+    interrupt_marker = tmp_path / "interrupt-master"
+    master, port, _ = _start_fast_master(
+        tmp_path,
+        images,
+        assignment_timeout=60.0,
+        idle_timeout=60.0,
+        shutdown_timeout=0.25,
+        interrupt_marker=interrupt_marker,
+    )
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        assignment = _rpc(proxy, "get_work", "busy-node", "busy-process", "work-request")
+        assert assignment["status"] == "work"
+        interrupt_marker.touch()
+        started = time.monotonic()
+        status, _, stderr = _finish_master(master)
+        elapsed = time.monotonic() - started
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 1
+    assert elapsed < 2
+    assert "Incomplete workload" in stderr
+    assert not (tmp_path / "ocr_results.csv").exists()
 
 
 def test_master_skips_oversized_image_and_does_not_publish_complete_csv(tmp_path: Path) -> None:
