@@ -51,6 +51,10 @@ RPC_RETRY_DELAY_SECONDS = 0.2
 WORK_POLL_SECONDS = 0.2
 MASTER_STARTUP_TIMEOUT_SECONDS = 60.0
 MASTER_IDLE_TIMEOUT_SECONDS = 180.0
+# Budget two 30-second OCR attempts plus 30 seconds for transfer and local processing.
+ASSIGNMENT_TIMEOUT_SECONDS = 90.0
+MAX_REASSIGNMENTS_PER_IMAGE = 2
+MASTER_SHUTDOWN_TIMEOUT_SECONDS = 30.0
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9_.:@-]{1,160}\Z")
 _RESULT_FIELDS = {"status", "text", "processing_time_ms"}
@@ -66,6 +70,7 @@ class _Assignment:
     process_id: str
     request_id: str
     token: str
+    deadline_at: float
     outcome: dict[str, Any] | None = None
 
 
@@ -78,6 +83,9 @@ class MasterCoordinator:
         *,
         startup_timeout: float = MASTER_STARTUP_TIMEOUT_SECONDS,
         idle_timeout: float = MASTER_IDLE_TIMEOUT_SECONDS,
+        assignment_timeout: float = ASSIGNMENT_TIMEOUT_SECONDS,
+        max_reassignments: int = MAX_REASSIGNMENTS_PER_IMAGE,
+        shutdown_timeout: float = MASTER_SHUTDOWN_TIMEOUT_SECONDS,
     ) -> None:
         self._images = enumerate_images(config.image_dir)
         self._config = config
@@ -90,6 +98,10 @@ class MasterCoordinator:
         self._building_requests: set[tuple[str, str, str]] = set()
         self._assignments: dict[str, _Assignment] = {}
         self._active_by_process: dict[tuple[str, str], str] = {}
+        self._reassignments_by_image: dict[int, int] = {}
+        self._known_workers: set[tuple[str, str]] = set()
+        self._unresponsive_workers: set[tuple[str, str]] = set()
+        self._shutdown_notified: set[tuple[str, str]] = set()
         self._records: dict[int, dict[str, Any]] = {}
         self._failures: dict[int, dict[str, Any]] = {}
         self._result_acks: dict[tuple[str, str, str], tuple[dict[str, Any], dict[str, Any]]] = {}
@@ -98,6 +110,11 @@ class MasterCoordinator:
         self._last_progress = self._created_at
         self._startup_timeout = startup_timeout
         self._idle_timeout = idle_timeout
+        self._assignment_timeout = assignment_timeout
+        self._max_reassignments = max_reassignments
+        self._shutdown_timeout = shutdown_timeout
+        self._shutdown_started_at: float | None = None
+        self._cancel_requested = False
         self._fatal_reason: str | None = None
         self._worker_seen = False
 
@@ -110,31 +127,45 @@ class MasterCoordinator:
         key = (node_id, process_id, request_id)
         process_key = (node_id, process_id)
         with self._condition:
+            now = time.monotonic()
+            self._expire_assignments_locked(now)
             while key in self._building_requests:
                 self._condition.wait(timeout=RPC_TIMEOUT_SECONDS)
             previous = self._requests.get(key)
             if previous is not None:
                 return previous.copy()
 
-            if self._stop_event.is_set():
-                return {"status": "shutdown"}
+            if self._stop_event.is_set() or self._cancel_requested:
+                self._known_workers.add(process_key)
+                self._unresponsive_workers.discard(process_key)
+                self._worker_seen = True
+                return self._shutdown_response_locked(key, process_key)
+            if self._shutdown_started_at is not None:
+                self._known_workers.add(process_key)
+                self._unresponsive_workers.discard(process_key)
+                self._worker_seen = True
+                return self._shutdown_response_locked(key, process_key)
 
             if process_key in self._active_by_process:
+                self._known_workers.add(process_key)
+                self._unresponsive_workers.discard(process_key)
+                self._worker_seen = True
                 response = {"status": "wait"}
                 self._requests[key] = response
                 return response.copy()
             if len(self._active_by_process) >= MAX_ACTIVE_WORKERS:
                 return _rejected("master reached the active worker-process limit")
 
+            self._known_workers.add(process_key)
+            self._unresponsive_workers.discard(process_key)
+            self._worker_seen = True
+
             try:
                 image = self._available.get_nowait()
             except queue.Empty:
                 if not self._has_active_assignments_locked():
-                    response = {"status": "shutdown"}
-                    self._requests[key] = response
-                    self._stop_event.set()
-                    self._condition.notify_all()
-                    return response.copy()
+                    self._begin_shutdown_locked(now)
+                    return self._shutdown_response_locked(key, process_key)
                 response = {"status": "wait"}
                 self._requests[key] = response
                 return response.copy()
@@ -145,16 +176,25 @@ class MasterCoordinator:
                 process_id=process_id,
                 request_id=request_id,
                 token=uuid.uuid4().hex,
+                deadline_at=now + self._assignment_timeout,
             )
             self._assignments[assignment.token] = assignment
             self._active_by_process[process_key] = assignment.token
             self._building_requests.add(key)
-            self._worker_seen = True
-            self._last_progress = time.monotonic()
+            self._last_progress = now
 
         response = self._read_assignment(assignment)
         with self._condition:
-            if response["status"] == "skip":
+            current_assignment = self._assignments.get(assignment.token)
+            if current_assignment is not assignment:
+                response = self._requests.get(
+                    key, _rejected("assignment expired or was cancelled before delivery")
+                )
+            elif self._cancel_requested:
+                self._assignments.pop(assignment.token, None)
+                self._active_by_process.pop(process_key, None)
+                response = self._shutdown_response_locked(key, process_key)
+            elif response["status"] == "skip":
                 self._failures[image.image_id] = {
                     "image_id": image.image_id,
                     "filename": image.path.name,
@@ -166,9 +206,10 @@ class MasterCoordinator:
                 del self._assignments[assignment.token]
                 self._active_by_process.pop((assignment.node_id, assignment.process_id), None)
                 self._last_progress = time.monotonic()
+                self._begin_shutdown_if_terminal_locked(self._last_progress)
             else:
                 self._last_progress = time.monotonic()
-            self._requests[key] = response
+            self._requests[key] = response.copy()
             self._building_requests.remove(key)
             self._condition.notify_all()
             return response.copy()
@@ -193,6 +234,9 @@ class MasterCoordinator:
 
         ack_key = (node_id, process_id, request_id)
         with self._condition:
+            now = time.monotonic()
+            if not self._cancel_requested:
+                self._expire_assignments_locked(now)
             previous = self._result_acks.get(ack_key)
             if previous is not None:
                 if previous[0] == normalized and previous[1]["attempt_token"] == attempt_token:
@@ -234,26 +278,46 @@ class MasterCoordinator:
             self._active_by_process.pop((node_id, process_id), None)
             # The result closes the request; discard its potentially large image payload.
             self._requests[(node_id, process_id, request_id)] = {"status": "completed"}
-            self._last_progress = time.monotonic()
+            self._last_progress = now
+            self._begin_shutdown_if_terminal_locked(now)
             self._condition.notify_all()
             return ack
 
     def should_continue(self) -> bool:
         """Pyro's loop condition: continue until shutdown or a finite deadline."""
-        if self._stop_event.is_set():
-            return False
-        now = time.monotonic()
-        if not self._worker_seen and now - self._created_at >= self._startup_timeout:
-            self.stop("no worker connected before the startup deadline")
-        elif self._worker_seen and now - self._last_progress >= self._idle_timeout:
-            self.stop("worker became inactive before the workload completed")
-        return not self._stop_event.is_set()
+        with self._condition:
+            if self._stop_event.is_set():
+                return False
+            now = time.monotonic()
+            if not self._cancel_requested:
+                self._expire_assignments_locked(now)
+                self._begin_shutdown_if_terminal_locked(now)
+                if self._shutdown_started_at is None:
+                    if not self._worker_seen and now - self._created_at >= self._startup_timeout:
+                        self._request_stop_locked(
+                            "no worker connected before the startup deadline", now
+                        )
+                    elif self._worker_seen and now - self._last_progress >= self._idle_timeout:
+                        self._request_stop_locked(
+                            "worker became inactive before the workload completed", now
+                        )
+
+            shutdown_started = self._shutdown_started_at
+            if shutdown_started is not None:
+                expected_workers = self._known_workers - self._unresponsive_workers
+                if (
+                    expected_workers <= self._shutdown_notified
+                    or now - shutdown_started >= self._shutdown_timeout
+                ):
+                    self._stop_event.set()
+                    self._condition.notify_all()
+                    return False
+            return True
 
     def stop(self, reason: str) -> None:
         """Stop accepting work and retain a reason for the incomplete-run artifacts."""
-        self._fatal_reason = reason
-        self._stop_event.set()
         with self._condition:
+            self._request_stop_locked(reason, time.monotonic())
             self._condition.notify_all()
 
     def prepare_outputs(self) -> None:
@@ -325,6 +389,72 @@ class MasterCoordinator:
             "attempt_token": assignment.token,
         }
 
+    def _expire_assignments_locked(self, now: float) -> None:
+        """Release overdue owners and either requeue or terminally fail their images."""
+        if self._cancel_requested or self._shutdown_started_at is not None:
+            return
+        expired = [
+            assignment for assignment in self._assignments.values() if assignment.deadline_at <= now
+        ]
+        for assignment in expired:
+            process_key = (assignment.node_id, assignment.process_id)
+            self._assignments.pop(assignment.token, None)
+            self._active_by_process.pop(process_key, None)
+            self._unresponsive_workers.add(process_key)
+            self._requests[(assignment.node_id, assignment.process_id, assignment.request_id)] = (
+                _rejected("assignment expired; this request ID cannot be reused")
+            )
+
+            reassignments = self._reassignments_by_image.get(assignment.image.image_id, 0)
+            if reassignments < self._max_reassignments:
+                self._reassignments_by_image[assignment.image.image_id] = reassignments + 1
+                self._available.put_nowait(assignment.image)
+            else:
+                self._failures[assignment.image.image_id] = {
+                    "image_id": assignment.image.image_id,
+                    "filename": assignment.image.path.name,
+                    "stage": "worker_recovery",
+                    "exception_type": "AssignmentTimeout",
+                    "message": (
+                        f"assignment deadline expired after {reassignments + 1} attempt(s); "
+                        f"maximum reassignments is {self._max_reassignments}"
+                    )[:MAX_DIAGNOSTIC_CHARS],
+                }
+
+        if expired:
+            self._last_progress = now
+            self._begin_shutdown_if_terminal_locked(now)
+            self._condition.notify_all()
+
+    def _begin_shutdown_if_terminal_locked(self, now: float) -> None:
+        if (
+            self._shutdown_started_at is None
+            and not self._cancel_requested
+            and not self._active_by_process
+            and self._available.empty()
+            and len(self._records) + len(self._failures) == len(self._images)
+        ):
+            self._begin_shutdown_locked(now)
+
+    def _begin_shutdown_locked(self, now: float) -> None:
+        if self._shutdown_started_at is None:
+            self._shutdown_started_at = now
+
+    def _request_stop_locked(self, reason: str, now: float) -> None:
+        if self._shutdown_started_at is None:
+            self._fatal_reason = reason
+            self._cancel_requested = True
+            self._begin_shutdown_locked(now)
+
+    def _shutdown_response_locked(
+        self, request_key: tuple[str, str, str], process_key: tuple[str, str]
+    ) -> dict[str, Any]:
+        response = {"status": "shutdown"}
+        self._requests[request_key] = response
+        self._shutdown_notified.add(process_key)
+        self._condition.notify_all()
+        return response.copy()
+
     def _has_active_assignments_locked(self) -> bool:
         return bool(self._active_by_process)
 
@@ -345,7 +475,17 @@ def run_master(config_path: str | Path) -> int:
         return 2
 
     daemon: Pyro5.api.Daemon | None = None
+    previous_sigint_handler = signal.getsignal(signal.SIGINT)
+    sigbreak = getattr(signal, "SIGBREAK", None)
+    previous_sigbreak_handler = signal.getsignal(sigbreak) if sigbreak is not None else None
+
+    def handle_interrupt(_signum: int, _frame: Any) -> None:
+        coordinator.stop("master interrupted by operator")
+
     try:
+        signal.signal(signal.SIGINT, handle_interrupt)
+        if sigbreak is not None:
+            signal.signal(sigbreak, handle_interrupt)
         Pyro5.api.config.MAX_MESSAGE_SIZE = (  # pyright: ignore[reportAttributeAccessIssue]
             MAX_RPC_MESSAGE_BYTES
         )
@@ -355,10 +495,18 @@ def run_master(config_path: str | Path) -> int:
         daemon.requestLoop(loopCondition=coordinator.should_continue)
     except KeyboardInterrupt:
         coordinator.stop("master interrupted by operator")
+        if daemon is not None:
+            try:
+                daemon.requestLoop(loopCondition=coordinator.should_continue)
+            except KeyboardInterrupt:
+                coordinator._stop_event.set()
     except (OSError, Pyro5.errors.PyroError) as error:
         coordinator.stop(f"Pyro master error: {type(error).__name__}: {error}")
         print(coordinator._fatal_reason, file=sys.stderr)
     finally:
+        signal.signal(signal.SIGINT, previous_sigint_handler)
+        if sigbreak is not None and previous_sigbreak_handler is not None:
+            signal.signal(sigbreak, previous_sigbreak_handler)
         if daemon is not None:
             daemon.close()
 
