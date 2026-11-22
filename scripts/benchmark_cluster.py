@@ -23,6 +23,7 @@ import sys
 import time
 from pathlib import Path
 
+from parallel_ocr_pipeline.distributed import MAX_ACTIVE_WORKERS
 from run_acceptance import MODEL, ROOT, compose, container_ids, inspect, run
 
 TIMESTAMP = re.compile(r"^(\d{4}-\d\d-\d\dT[\d:.]+)Z\s+(.*)$")
@@ -105,11 +106,11 @@ def run_sample(nodes: int, procs: int, out: Path) -> dict:
     }
 
 
-def summarize(samples: list[dict], key: str, fixed: str) -> list[dict]:
+def summarize(samples: list[dict], key: str, sweep: str, nodes: int | None = None) -> list[dict]:
     """Mean/stdev per setting, speedup against the smallest setting, efficiency per unit."""
     groups: dict[int, list[float]] = {}
     for s in samples:
-        if s["valid"] and s["sweep"] == fixed:
+        if s["valid"] and s["sweep"] == sweep and nodes in (None, s["nodes"]):
             groups.setdefault(s[key], []).append(s["window_s"])
     base_n = min(groups)
     t1 = statistics.mean(groups[base_n])
@@ -142,7 +143,9 @@ def main() -> int:
     parser.add_argument("--node-counts", type=ints, default=[1, 2], help="node sweep, e.g. 1,2,3")
     parser.add_argument("--node-procs", type=int, default=2, help="processes/node, node sweep")
     parser.add_argument("--proc-counts", type=ints, default=[1, 2, 4], help="processes sweep")
-    parser.add_argument("--proc-nodes", type=int, default=2, help="fixed nodes, processes sweep")
+    parser.add_argument(
+        "--proc-nodes", type=ints, default=[2], help="fixed node counts, processes sweep"
+    )
     parser.add_argument("--reps", type=int, default=3)
     parser.add_argument("--skip", choices=("nodes", "procs"), help="skip one sweep")
     parser.add_argument("--out", type=Path, default=None)
@@ -158,7 +161,16 @@ def main() -> int:
     if args.skip != "nodes":
         plan += [("nodes", n, args.node_procs) for n in args.node_counts]
     if args.skip != "procs":
-        plan += [("procs", args.proc_nodes, p) for p in args.proc_counts]
+        plan += [("procs", n, p) for n in args.proc_nodes for p in args.proc_counts]
+
+    over_cap = [entry for entry in plan if entry[1] * entry[2] > MAX_ACTIVE_WORKERS]
+    for sweep, nodes, procs in over_cap:
+        print(
+            f"skip {sweep} {nodes} nodes x {procs} procs: {nodes * procs} exceeds the master's "
+            f"{MAX_ACTIVE_WORKERS} active worker-process cap",
+            file=sys.stderr,
+        )
+    plan = [entry for entry in plan if entry not in over_cap]
 
     compose("build")
     samples: list[dict] = []
@@ -192,11 +204,12 @@ def main() -> int:
         "node_sweep": summarize(samples, "nodes", "nodes")
         if any(s["sweep"] == "nodes" for s in samples)
         else [],
-        "proc_sweep": summarize(samples, "procs", "procs")
-        if any(s["sweep"] == "procs" for s in samples)
-        else [],
+        "proc_sweeps": {
+            str(n): summarize(samples, "procs", "procs", n)
+            for n in args.proc_nodes
+            if any(s["sweep"] == "procs" and s["nodes"] == n for s in samples)
+        },
         "node_sweep_procs_per_node": args.node_procs,
-        "proc_sweep_nodes": args.proc_nodes,
         "samples": samples,
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")

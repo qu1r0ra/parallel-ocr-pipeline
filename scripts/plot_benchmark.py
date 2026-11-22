@@ -114,19 +114,23 @@ def main() -> int:
     data = json.loads(args.summary.read_text(encoding="utf-8"))
     out = args.out or args.summary.parent
     out.mkdir(parents=True, exist_ok=True)
-    sweeps = (
+    sweeps = [
         (
             "node_sweep",
+            data.get("node_sweep", []),
             "nodes",
             "worker nodes",
             f"{data['node_sweep_procs_per_node']} process/node",
-        ),
-        ("proc_sweep", "procs", "processes per node", f"{data['proc_sweep_nodes']} worker nodes"),
-    )
-    for name, key, label, fixed in sweeps:
-        if data.get(name):
+        )
+    ]
+    sweeps += [
+        (f"proc_sweep_{n}nodes", rows, "procs", "processes per node", f"{n} worker nodes")
+        for n, rows in data.get("proc_sweeps", {}).items()
+    ]
+    for name, rows, key, label, fixed in sweeps:
+        if rows:
             target = out / f"{name}.svg"
-            target.write_text(render(data[name], key, label, f"{label} sweep, {fixed}"), "utf-8")
+            target.write_text(render(rows, key, label, f"{label} sweep, {fixed}"), "utf-8")
             print(target)
     return 0
 
