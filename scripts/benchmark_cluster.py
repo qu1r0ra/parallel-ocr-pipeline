@@ -23,6 +23,7 @@ import sys
 import time
 from pathlib import Path
 
+from parallel_ocr_pipeline.distributed import MAX_ACTIVE_WORKERS
 from run_acceptance import MODEL, ROOT, compose, container_ids, inspect, run
 
 TIMESTAMP = re.compile(r"^(\d{4}-\d\d-\d\dT[\d:.]+)Z\s+(.*)$")
@@ -161,6 +162,15 @@ def main() -> int:
         plan += [("nodes", n, args.node_procs) for n in args.node_counts]
     if args.skip != "procs":
         plan += [("procs", n, p) for n in args.proc_nodes for p in args.proc_counts]
+
+    over_cap = [entry for entry in plan if entry[1] * entry[2] > MAX_ACTIVE_WORKERS]
+    for sweep, nodes, procs in over_cap:
+        print(
+            f"skip {sweep} {nodes} nodes x {procs} procs: {nodes * procs} exceeds the master's "
+            f"{MAX_ACTIVE_WORKERS} active worker-process cap",
+            file=sys.stderr,
+        )
+    plan = [entry for entry in plan if entry not in over_cap]
 
     compose("build")
     samples: list[dict] = []

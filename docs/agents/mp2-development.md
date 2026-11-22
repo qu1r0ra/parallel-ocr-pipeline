@@ -30,7 +30,9 @@ Completion: container evidence records the laptop's hostname and the commit SHA 
 
 Two datasets answer different questions; report each in its own table in [benchmark results](../benchmark-results.md) and never merge them.
 
-- **Local container** (IdeaPad; every container shares 8 logical CPUs): node counts 1 to 16 at 1 process per node, and process counts 1 to 16 at 1, 2, and 3 worker nodes. It measures design overhead and contention, not multi-machine scaling.
+- **Local container** (IdeaPad; every container shares 8 logical CPUs): node counts 1 to 16 at 1 process per node, and process counts 1 to 16 at 1 and 2 worker nodes, 1 to 10 at 3. It measures design overhead and contention, not multi-machine scaling.
 - **Cloud** (3 VMs: 1 master, 2 workers): node scaling is one matched pair, 1 active worker (the other VM idle) against 2. Process sweeps run at both. Node count cannot exceed 2, so the process sweeps carry most of this dataset.
+
+The master admits at most `MAX_ACTIVE_WORKERS` (32) worker processes cluster-wide, so `nodes × procs` above 32 is rejected; the runner skips those settings and reports each skip. The local sweep also fails 13 or more simultaneous container starts when Docker DNS misses a lookup, because workers do not retry their first connection; a failed sample is invalid and stays in `invalid_samples`.
 
 Run both with `just benchmark-cluster` on the host that owns the cluster. Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.

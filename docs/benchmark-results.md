@@ -79,20 +79,20 @@ The submission candidate CSV and its historical validation details remain docume
 
 # MP2 cluster benchmark (ticket #27)
 
-**Scope:** Local container evidence from one laptop. It shows how the Compose cluster behaves when every container shares the same 8 logical CPUs; it is **not** a multi-machine scaling measurement. The school-cloud VM comparison (one worker VM versus two, and the processes-per-node sweep on two worker VMs) is separate, later data and is not reported here.
+**Scope:** Local container evidence from one laptop. It shows how the Compose cluster behaves when every container shares the same 8 logical CPUs; it is **not** a multi-machine scaling measurement. The school-cloud VM data (one active worker VM versus two, and the processes-per-node sweeps on both) is a separate, later dataset and is never merged into these tables.
 
 ## MP2 benchmark method
 
-- Run on the Ubuntu IdeaPad (`qu1r0ra-ideapad-ubuntu`) at commit `ba4761d`, one master and `worker` replicas started by `docker compose up`. Each sample builds a fresh cluster (`down -v`, `create --scale`, copy the supplied model into each worker, `up`), so no state carries between samples.
-- **Node sweep:** 1, 2, 3, 4, 6, and 8 worker nodes at 1 process per node. This is the matched comparison of one active worker node against several, with identical per-node settings. The master is not counted in `n`.
-- **Processes-per-node sweep:** 1, 2, 3, 4, 5, 6, and 8 processes per node on a fixed two worker nodes (the course topology).
-- **Repetitions:** 5 per setting, interleaved within each repetition so host drift reaches every setting. The pilot (1 repetition) showed processing windows of 2–6 s with noticeable jitter, hence five.
-- **Validation:** a sample counts only if the master and all workers exit 0, the CSV has exactly one row per image with unique filenames, the master logged exactly one assignment per image, and `evaluate-pipeline` passes. All 65 samples were valid (`invalid_samples` = 0).
+- Run on the Ubuntu IdeaPad (`qu1r0ra-ideapad-ubuntu`) at commit `35f2cc9`, one master and `worker` replicas started by `docker compose up`. Each sample builds a fresh cluster (`down -v`, `create --scale`, copy the supplied model into each worker, `up`), so no state carries between samples.
+- **Node sweep:** 1 to 16 worker nodes at 1 process per node, a linear sweep like MP1's. The master is not counted in `n`.
+- **Processes-per-node sweeps:** 1 to 16 processes per node on 1 and 2 worker nodes, and 1 to 10 on 3 worker nodes. The master admits at most 32 active worker processes cluster-wide (`MAX_ACTIVE_WORKERS`), so 3 nodes × 11 to 16 processes is rejected by design and was not a measurement (those samples are counted in `invalid_samples`).
+- **Repetitions:** 5 per setting, interleaved within each repetition so host drift reaches every setting.
+- **Validation:** a sample counts only if the master and all workers exit 0, the CSV has exactly one row per image with unique filenames, the master logged exactly one assignment per image, and `evaluate-pipeline` passes. 320 samples ran; `invalid_samples` = 42, all excluded from the tables (causes under Limits).
 - **Constant:** the same 100 images and supplied `eng.traineddata`, `OMP_THREAD_LIMIT=1` (set in the image), the 90 s assignment deadline, and no fault injection. Fault injection is evidenced separately in [cluster acceptance](cluster-acceptance.md).
 - **Timing boundaries**, both reported:
   - **Window** (`window_s`): the master's first `ASSIGN` log timestamp to its `Completed` log timestamp, read with `docker compose logs -t`. This is processing time and the basis of S and E.
   - **Total** (`total_s`): `docker compose up -d` issued until the master container exits. It adds container and process startup (about 6.5 s here) and so compresses every ratio.
-- Metrics: `S = T1 / Tn` and `E = S / n`, with `T` the mean window. In the process sweep, `T1` is the 1 process-per-node setting and `n` is processes per node.
+- Metrics: `S = T1 / Tn` and `E = S / n`, with `T` the mean window. In the process sweeps, `T1` is the 1 process-per-node setting, `n` is processes per node, and S is relative to that setting on the same node count.
 - Reproduce with `just benchmark-cluster` on the container host, then `just plot-benchmark <summary.json>`.
 
 ## MP2 machine and software
@@ -101,7 +101,7 @@ The submission candidate CSV and its historical validation details remain docume
 |---|---|
 | Host | IdeaPad laptop, Ubuntu (Linux 7.0.0-43), on AC power, CPU governor `powersave` |
 | CPU | 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz; 4 cores / 8 logical processors |
-| Memory | 14 GiB total, about 9 GiB free before the sweep |
+| Memory | 14 GiB total |
 | Container resources | None set: `compose.yaml` has no CPU or memory limits, so all containers and the Docker daemon share the same 8 logical CPUs |
 | Docker / Compose | 29.10.0 / 5.8.0 |
 | Tesseract | 5.5.0 |
@@ -116,44 +116,107 @@ The submission candidate CSV and its historical validation details remain docume
 
 | Worker nodes | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 7.926 | 0.003 | 7.923–7.929 | 1.000× | 1.000 | 14.54 |
-| 2 | 5 | 5.863 | 0.005 | 5.856–5.868 | 1.352× | 0.676 | 12.54 |
-| 3 | 5 | 3.767 | 0.049 | 3.718–3.821 | 2.104× | 0.701 | 10.53 |
-| 4 | 5 | 3.445 | 0.499 | 2.557–3.720 | 2.301× | 0.575 | 10.32 |
-| 6 | 5 | 2.891 | 0.049 | 2.844–2.964 | 2.742× | 0.457 | 9.92 |
-| 8 | 5 | 3.483 | 0.079 | 3.353–3.541 | 2.276× | 0.284 | 10.54 |
+| 1 | 5 | 7.939 | 0.004 | 7.935–7.944 | 1.000× | 1.000 | 14.52 |
+| 2 | 5 | 5.870 | 0.012 | 5.857–5.887 | 1.352× | 0.676 | 12.53 |
+| 3 | 5 | 3.740 | 0.065 | 3.648–3.829 | 2.123× | 0.708 | 10.52 |
+| 4 | 5 | 3.690 | 0.040 | 3.636–3.749 | 2.152× | 0.538 | 10.53 |
+| 5 | 5 | 2.697 | 0.049 | 2.659–2.773 | 2.944× | 0.589 | 9.65 |
+| 6 | 5 | 2.921 | 0.043 | 2.855–2.964 | 2.718× | 0.453 | 9.93 |
+| 7 | 5 | 3.228 | 0.047 | 3.179–3.292 | 2.459× | 0.351 | 10.30 |
+| 8 | 5 | 3.523 | 0.048 | 3.453–3.584 | 2.253× | 0.282 | 10.53 |
+| 9 | 5 | 3.536 | 0.027 | 3.489–3.556 | 2.245× | 0.249 | 10.55 |
+| 10 | 5 | 3.601 | 0.024 | 3.576–3.638 | 2.205× | 0.220 | 10.68 |
+| 11 | 5 | 5.579 | 0.037 | 5.524–5.617 | 1.423× | 0.129 | 12.59 |
+| 12 | 5 | 5.510 | 0.784 | 4.110–5.939 | 1.441× | 0.120 | 12.55 |
+| 13 | 3 | 5.024 | 1.108 | 4.342–6.302 | 1.580× | 0.122 | 12.11 |
+| 14 | 4 | 4.695 | 0.127 | 4.539–4.808 | 1.691× | 0.121 | 11.80 |
+| 15 | 1 | 4.746 | 0.000 | 4.746–4.746 | 1.673× | 0.112 | 11.87 |
 
-![Processes-per-node sweep on two worker nodes: processing window and speedup](benchmark-cluster/proc_sweep.svg)
+Nodes 13 to 15 have fewer than 5 runs and 16 has none; see Limits.
+
+![Processes-per-node sweep on 1 worker node: processing window and speedup](benchmark-cluster/proc_sweep_1nodes.svg)
+
+### Processes-per-node sweep (1 worker node)
+
+| Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 7.908 | 0.009 | 7.894–7.915 | 1.000× | 1.000 | 14.53 |
+| 2 | 5 | 5.895 | 0.013 | 5.882–5.914 | 1.341× | 0.671 | 12.53 |
+| 3 | 5 | 3.876 | 0.009 | 3.863–3.887 | 2.040× | 0.680 | 10.54 |
+| 4 | 5 | 3.882 | 0.006 | 3.871–3.888 | 2.037× | 0.509 | 10.54 |
+| 5 | 5 | 2.366 | 0.005 | 2.360–2.374 | 3.342× | 0.668 | 9.03 |
+| 6 | 5 | 2.360 | 0.016 | 2.334–2.375 | 3.351× | 0.558 | 9.03 |
+| 7 | 5 | 2.275 | 0.003 | 2.271–2.277 | 3.476× | 0.497 | 9.05 |
+| 8 | 5 | 2.244 | 0.007 | 2.233–2.250 | 3.525× | 0.441 | 9.08 |
+| 9 | 5 | 2.474 | 0.055 | 2.398–2.523 | 3.197× | 0.355 | 9.42 |
+| 10 | 5 | 2.501 | 0.044 | 2.462–2.564 | 3.162× | 0.316 | 9.46 |
+| 11 | 5 | 2.586 | 0.087 | 2.487–2.675 | 3.057× | 0.278 | 9.57 |
+| 12 | 5 | 2.728 | 0.100 | 2.632–2.845 | 2.899× | 0.242 | 9.74 |
+| 13 | 5 | 2.761 | 0.079 | 2.699–2.891 | 2.864× | 0.220 | 9.86 |
+| 14 | 5 | 2.846 | 0.151 | 2.602–3.008 | 2.779× | 0.198 | 9.89 |
+| 15 | 5 | 2.914 | 0.112 | 2.810–3.062 | 2.713× | 0.181 | 10.08 |
+| 16 | 5 | 3.074 | 0.163 | 2.878–3.295 | 2.572× | 0.161 | 10.23 |
+
+
+![Processes-per-node sweep on 2 worker nodes: processing window and speedup](benchmark-cluster/proc_sweep_2nodes.svg)
 
 ### Processes-per-node sweep (2 worker nodes)
 
 | Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 5.864 | 0.014 | 5.850–5.884 | 1.000× | 1.000 | 12.53 |
-| 2 | 5 | 3.826 | 0.025 | 3.783–3.845 | 1.533× | 0.766 | 10.54 |
-| 3 | 5 | 2.341 | 0.023 | 2.301–2.359 | 2.505× | 0.835 | 9.13 |
-| 4 | 5 | 2.393 | 0.060 | 2.320–2.483 | 2.450× | 0.613 | 9.35 |
-| 5 | 5 | 2.645 | 0.109 | 2.479–2.753 | 2.217× | 0.443 | 9.61 |
-| 6 | 5 | 2.915 | 0.125 | 2.750–3.084 | 2.012× | 0.335 | 9.91 |
-| 8 | 5 | 3.129 | 0.090 | 3.040–3.277 | 1.874× | 0.234 | 10.32 |
+| 1 | 5 | 5.863 | 0.006 | 5.857–5.870 | 1.000× | 1.000 | 12.54 |
+| 2 | 5 | 3.842 | 0.012 | 3.830–3.862 | 1.526× | 0.763 | 10.53 |
+| 3 | 5 | 2.350 | 0.009 | 2.338–2.360 | 2.495× | 0.832 | 9.16 |
+| 4 | 5 | 2.453 | 0.057 | 2.385–2.516 | 2.390× | 0.598 | 9.37 |
+| 5 | 5 | 2.601 | 0.024 | 2.563–2.623 | 2.254× | 0.451 | 9.60 |
+| 6 | 5 | 2.761 | 0.188 | 2.535–3.011 | 2.124× | 0.354 | 9.85 |
+| 7 | 5 | 2.903 | 0.213 | 2.706–3.249 | 2.020× | 0.289 | 10.10 |
+| 8 | 5 | 3.026 | 0.130 | 2.820–3.169 | 1.938× | 0.242 | 10.35 |
+| 9 | 5 | 3.121 | 0.164 | 2.868–3.297 | 1.878× | 0.209 | 10.52 |
+| 10 | 5 | 3.285 | 0.139 | 3.108–3.437 | 1.785× | 0.179 | 10.62 |
+| 11 | 5 | 5.048 | 0.264 | 4.733–5.384 | 1.162× | 0.106 | 12.59 |
+| 12 | 5 | 5.021 | 0.267 | 4.679–5.355 | 1.168× | 0.097 | 12.65 |
+| 13 | 5 | 5.088 | 0.124 | 4.943–5.224 | 1.152× | 0.089 | 12.64 |
+| 14 | 5 | 4.971 | 0.283 | 4.492–5.221 | 1.179× | 0.084 | 12.64 |
+| 15 | 5 | 4.544 | 0.332 | 4.181–5.008 | 1.290× | 0.086 | 12.64 |
+| 16 | 5 | 4.831 | 0.440 | 4.153–5.327 | 1.214× | 0.076 | 12.66 |
+
+
+![Processes-per-node sweep on 3 worker nodes: processing window and speedup](benchmark-cluster/proc_sweep_3nodes.svg)
+
+### Processes-per-node sweep (3 worker nodes)
+
+| Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 3.752 | 0.036 | 3.704–3.801 | 1.000× | 1.000 | 10.54 |
+| 2 | 5 | 2.479 | 0.083 | 2.359–2.552 | 1.514× | 0.757 | 9.38 |
+| 3 | 5 | 2.760 | 0.142 | 2.657–2.983 | 1.359× | 0.453 | 9.73 |
+| 4 | 5 | 2.963 | 0.137 | 2.845–3.200 | 1.266× | 0.317 | 10.07 |
+| 5 | 5 | 3.157 | 0.135 | 3.032–3.353 | 1.188× | 0.238 | 10.44 |
+| 6 | 5 | 3.149 | 0.210 | 2.837–3.332 | 1.191× | 0.199 | 10.58 |
+| 7 | 5 | 5.123 | 0.166 | 4.834–5.232 | 0.732× | 0.105 | 12.61 |
+| 8 | 5 | 4.913 | 0.190 | 4.699–5.155 | 0.764× | 0.095 | 12.67 |
+| 9 | 5 | 4.757 | 0.093 | 4.625–4.879 | 0.789× | 0.088 | 12.66 |
+| 10 | 5 | 4.594 | 0.223 | 4.372–4.878 | 0.817× | 0.082 | 12.68 |
 
 ## MP2 analysis
 
-- **Best measured configuration: 2 worker nodes × 3 processes per node**, a 2.341 s mean window (stdev 0.023 s) and about 9.1 s total. Four processes per node is within noise of it (2.393 s); five or more is slower. This is the best of the 13 settings measured, not an exhaustive search of node and process combinations.
-- **More nodes help up to a point.** At 1 process per node the window falls from 7.926 s (1 node) to 2.891 s (6 nodes), S = 2.74. Eight nodes (3.483 s) is slower than six: the master, the Docker daemon, and eight workers plus their Tesseract children compete for 8 logical CPUs.
-- **Efficiency drops steadily** (E = 0.68 at 2 nodes, 0.46 at 6, 0.28 at 8) because the extra nodes are containers on the same CPUs rather than additional machines. Adding capacity here mostly adds contention, so these numbers bound the overhead of the design on a shared host, not the speedup separate machines would see.
-- **Processes per node scale better than nodes at the same CPU count.** Two nodes × 3 processes (6 processes) reaches 2.341 s; six nodes × 1 process reaches 2.891 s. Each extra node adds a container, an RPC client, and a Pyro5 daemon; each extra process adds only an OCR worker.
-- **The two sweeps agree where they overlap:** 2 nodes × 1 process measured 5.863 s in the node sweep and 5.864 s in the process sweep.
-- **Not explained:** going from 1 to 2 nodes at 1 process per node gives only S = 1.35, while 2 to 3 nodes gives 1.56×. The data does not say why. Candidate causes (staggered worker startup inside the window, master `get_work` serialization) were not tested.
-- **Dispersion:** stdev is under 0.13 s everywhere except 4 nodes (0.499 s, range 2.557–3.720 s), where one repetition ran about 1.2 s faster than the others. All 65 samples are kept; none was discarded.
-- **Total versus window:** totals run 9.1–14.5 s because startup costs about 6.5 s regardless of configuration; a total-only view would understate every speedup.
+- **Best measured configuration: 1 worker node × 8 processes**, a 2.244 s mean window (stdev 0.007 s), S = 3.53 against 1 process. Seven processes (2.275 s) and the best multi-node settings are close: 2 nodes × 3 processes 2.350 s, 3 nodes × 2 processes 2.479 s, and the node sweep's 5 nodes × 1 process 2.697 s. This is the best of the measured settings, not an exhaustive search.
+- **Processes beat nodes on one host.** One node × 8 processes (8 workers) is faster than 8 nodes × 1 process (3.523 s), because every extra node adds a container, an RPC client, and a Pyro5 daemon on the same 8 logical CPUs. The optimum of every sweep sits at 5 to 8 total processes (5 nodes, 8 on one node, 6 on two and three nodes), at or below the 8 logical CPUs, and the window rises past it.
+- **Past the optimum, contention dominates.** In the node sweep the window is lowest at 5 nodes (2.697 s, S = 2.94) and rises after. Efficiency falls steadily (E = 0.68 at 2 nodes, 0.22 at 10) because added nodes share CPUs rather than adding machines. These numbers bound the overhead of the design on a shared host, not the speedup separate machines would see.
+- **A step the data does not explain.** The window jumps by about 2 s in three places: node sweep 10 to 11 nodes (3.60 to 5.58 s), 2 nodes × 10 to 11 processes (3.29 to 5.05 s), and 3 nodes × 6 to 7 processes (3.15 to 5.12 s). A separate rerun of 2 nodes × 10, 11, and 12 processes reproduced it (about 3.2 s, then about 5.0 s at both 11 and 12), and the total time rose by the same 2 s, so it is in processing rather than log timing. One node × 11 to 16 processes shows no step. The cause is not established. The Pyro5 thread pool, process-startup oversubscription, and master serialization were considered and not tested. The measured optima lie well below this region.
+- **Not explained:** going from 1 to 2 nodes at 1 process per node gives only S = 1.35, while 2 to 3 nodes gives 1.57×.
+- **Dispersion:** stdev is under 0.2 s for every setting up to about 8 total processes and rises past it, up to 0.78 s at 12 nodes and 1.1 s at 13 nodes (few valid runs). All valid samples are kept.
+- **Total versus window:** totals include about 6.5 s of startup regardless of configuration; a total-only view would understate every speedup.
 
 ## MP2 limits
 
 - One physical laptop: no network latency, no separate memory, and no hardware isolation between nodes. Conclusions about node count do not transfer to separate VMs.
-- 8 logical CPUs (4 physical cores with hyper-threading). The optimum sits near 6 total processes, and total process counts up to 16 (2 nodes × 8) were measured.
-- No container CPU limits, so results reflect default Compose behaviour. Windows lengthen beyond about 6 total processes, so CPU limits are a possible follow-up; they were not applied.
+- 8 logical CPUs (4 physical cores with hyper-threading). Settings above 8 total processes oversubscribe the CPUs; the 16-process and 16-node ends measure contention, not capacity.
+- **Invalid samples (42 of 320):** the 3 nodes × 11 to 16 processes settings exceed the master's 32 active-process cap and were rejected by design. Node counts 13 to 16 lost samples when Docker DNS failed a worker's first lookup (`Temporary failure in name resolution`); workers do not retry their initial connection, so the worker exited 1. Starting 13 or more containers at once triggers it. The node sweep therefore has 3 valid runs at 13 nodes, 4 at 14, 1 at 15, and none at 16.
+- No container CPU limits, so results reflect default Compose behaviour; CPU limits are a possible follow-up.
 - The `powersave` governor and thermal state were not controlled; interleaving spreads their effect across settings.
-- Five repetitions per setting; the 3 versus 4 processes-per-node difference (0.05 s) is within about one standard deviation.
+- Five repetitions per setting; differences under about one standard deviation, such as 7 versus 8 processes on one node, are not distinguishable.
+- Cloud VMs will add network latency and real CPUs per node, so the cloud tables will be a separate dataset.
 
-Raw per-sample records are in the ignored `results/benchmark-v1/summary.json`; every row of the tables above is derived from it.
+Raw per-sample records are in the ignored `results/benchmark-v2/summary.json`; every row of the tables above is derived from it.
