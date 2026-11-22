@@ -90,3 +90,15 @@ test *args:
 # Run the #26 cluster acceptance (kill a worker in flight) on the container host.
 acceptance *args:
     uv run --no-sync python scripts/run_acceptance.py {{args}}
+
+# Benchmark the Compose cluster (node and processes-per-node sweeps) on the container host.
+benchmark-cluster *args:
+    uv run --no-sync python scripts/benchmark_cluster.py {{args}}
+
+# Render the cluster benchmark sweeps from a summary.json as SVG plots.
+plot-benchmark summary *args:
+    uv run --no-sync python scripts/plot_benchmark.py "{{summary}}" {{args}}
+
+# Build the source-only ZIP and check it, the output CSV, and the deck against the handout.
+package-submission *args:
+    uv run --no-sync python scripts/package_submission.py {{args}}

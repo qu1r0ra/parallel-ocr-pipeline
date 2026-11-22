@@ -24,6 +24,12 @@ The accepted implementation boundaries and failure behavior remain in the [OCR c
 
 The agreed design, responsibilities, and live dependency map are in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). The partners reviewed the shared contract and agreed to the split: Imman leads master recovery (#24); Quirora leads workers and deployment (#25) and local resource-dependent validation. Both contribute to integration, benchmarking, and deliverables. The MP1 split above is historical.
 
-The shared RPC foundation (#23) and worker/container implementation (#25) are merged. A local Ubuntu run processed the supplied 100 images with one master and two worker containers; preliminary recognition evidence is recorded in [#26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26). Master recovery (#24) is merged. Integrated stopped-worker acceptance (#26) passed on the Ubuntu laptop; see [cluster acceptance](cluster-acceptance.md). Matched benchmarking and deliverables (#27) are next. Cloud access and benchmark ranges remain unconfirmed.
+The shared RPC foundation (#23) and worker/container implementation (#25) are merged. A local Ubuntu run processed the supplied 100 images with one master and two worker containers; preliminary recognition evidence is recorded in [#26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26). Master recovery (#24) is merged. Integrated stopped-worker acceptance (#26) passed on the Ubuntu laptop; see [cluster acceptance](cluster-acceptance.md). Local container benchmarking (#27) is recorded in [benchmark results](benchmark-results.md#mp2-cluster-benchmark-ticket-27): best measured configuration 2 worker nodes × 3 processes per node on the Ubuntu laptop. Cloud access is unconfirmed, so the VM comparison remains open.
+
+### Remaining #27 work
+
+- **Cloud VM runs (open):** each partner gets one master VM plus a one-worker and a two-worker setup. Run `just benchmark-cluster` with `--skip` and node counts matching each setup, and report the VM data separately from the local container data.
+- **Deck (open):** author and ownership are undecided. Sections needed: overview, distribution, synchronization, recovery evidence ([cluster acceptance](cluster-acceptance.md)), and benchmarking.
+- **Submission (human action):** commit everything, then run `just package-submission --csv <output.csv> --deck <deck.pptx>`. It builds the source-only ZIP from `HEAD`, rejects environments, secrets, course inputs, models, and run outputs, scores the CSV, and requires the deck. The handout asks for ZIP, CSV, and PPT only; no video.
 
 Use the [MP2 development guide](agents/mp2-development.md) for contributor entry points and the live issues for current status.
