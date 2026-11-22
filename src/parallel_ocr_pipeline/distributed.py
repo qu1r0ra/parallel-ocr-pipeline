@@ -51,6 +51,8 @@ RPC_RETRY_DELAY_SECONDS = 0.2
 # Initial work requests back off 1, 2, 4, 8, and 16 seconds, about 30 seconds in total.
 INITIAL_CONNECT_ATTEMPTS = 6
 INITIAL_CONNECT_BASE_DELAY_SECONDS = 1.0
+# No new initial attempt starts once this many seconds have passed since the first one.
+INITIAL_CONNECT_DEADLINE_SECONDS = 45.0
 WORK_POLL_SECONDS = 0.2
 MASTER_STARTUP_TIMEOUT_SECONDS = 60.0
 MASTER_IDLE_TIMEOUT_SECONDS = 180.0
@@ -657,6 +659,9 @@ def _run_worker_process(
             except CommunicationError as error:
                 print(f"Cannot request work from master: {error}", file=sys.stderr)
                 return 1
+            if response is None:
+                # A stop was requested before the master answered; the loop condition ends the run.
+                continue
             first_work_received = True
 
             status = response.get("status")
@@ -808,24 +813,36 @@ def _rpc_call(proxy: Proxy, method: str, *args: object) -> dict[str, Any]:
 
 def _initial_get_work(
     proxy: Proxy, stop_event: Any, node_id: str, process_id: str, request_id: str
-) -> dict[str, Any]:
-    """Retry the first work request with one idempotency key until the master answers."""
+) -> dict[str, Any] | None:
+    """Retry the first work request with one idempotency key until the master answers.
+
+    Returns None when a stop is requested before the master answers.
+    """
+    started = time.monotonic()
     attempt = 1
     while True:
         try:
             return _rpc_call(proxy, "get_work", node_id, process_id, request_id)
         except CommunicationError as error:
+            if stop_event.is_set():
+                return None
             if attempt >= INITIAL_CONNECT_ATTEMPTS:
                 raise CommunicationError(
                     f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts: {error}"
                 ) from error
             delay = INITIAL_CONNECT_BASE_DELAY_SECONDS * 2 ** (attempt - 1)
+            if time.monotonic() - started + delay >= INITIAL_CONNECT_DEADLINE_SECONDS:
+                raise CommunicationError(
+                    f"no answer after {INITIAL_CONNECT_DEADLINE_SECONDS:g} s: {error}"
+                ) from error
             print(
                 f"Cannot reach master (attempt {attempt} of {INITIAL_CONNECT_ATTEMPTS}): {error}; "
                 f"retrying in {delay:g} s",
                 file=sys.stderr,
             )
             stop_event.wait(delay)
+            if stop_event.is_set():
+                return None
             attempt += 1
 
 
