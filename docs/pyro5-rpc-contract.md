@@ -29,7 +29,7 @@ The master accepts `submit_result(node_id, process_id, request_id, attempt_token
 - Each transferred image is limited to 16 MiB. The size is checked before and after reading to guard against file changes. Pyro's message cap is about 32.25 MiB to allow for Serpent's base64 encoding overhead plus message metadata.
 - Identifiers, text, diagnostic strings, result shapes, processing time, and status values are validated at the public RPC boundary. Result text is limited to 1,000,000 characters; failure diagnostics are limited to 2,000 characters. The master accepts at most 32 active worker-process identities, with one image assignment active per process.
 - A request ID is unique within a process incarnation. Before a result is accepted, replaying its pull request returns the same assignment, token, and bytes. After result acceptance, that pull request replays as `completed` and its image bytes are discarded. A process incarnation is unique per worker launch. An assignment token authorizes one result for one exact assignment.
-- The worker sends one image per request. Failed submissions can be retried with the same request ID and token. Lost-worker detection and reassignment are defined by issue #24.
+- The worker sends one image per request. Failed submissions can be retried with the same request ID and token. The master expires assignments after 90 seconds, permits at most two reassignments per image, rejects superseded requests/results, and records an `AssignmentTimeout` failure after exhaustion. See [master recovery and shutdown](master-recovery.md).
 
 ## Timing, output, and termination
 
@@ -37,7 +37,7 @@ The master accepts `submit_result(node_id, process_id, request_id, attempt_token
 
 The master orders input files deterministically and assigns sequential integer IDs beginning at 1. It writes `ocr_results.csv` with fields `image_id,filename,text,processing_time_ms` only when every input image has a successful result. CSV escaping is handled by Python's CSV writer. Before processing starts, an existing complete CSV is moved to `ocr_results.previous.csv`. A successful run replaces it with the new complete CSV and removes the backup. A failed or interrupted run preserves the backup and writes successful rows to `ocr_results.partial.csv` plus failures/incomplete work to `ocr_failures.csv`; it leaves no current-run `ocr_results.csv`.
 
-After all results arrive, the worker makes another pull and receives `shutdown`; the daemon exits its request loop and the worker exits normally. A master with no connecting worker stops after 60 seconds. A connected worker that makes no image/result progress for 180 seconds stops the master; repeated `wait` polling does not reset that deadline. These are current basic-master bounds; reassignment and stronger multi-node lifecycle coordination are tracked in issue #24.
+After every image has a terminal outcome, workers receive `shutdown` on their next pull; the daemon waits up to 30 seconds for known responsive workers before exiting. A master with no connecting worker stops after 60 seconds. A connected worker that makes no image/result progress for 180 seconds stops the run; repeated `wait` polling does not reset that deadline. Ctrl+C stops new assignments and starts the bounded shutdown window. See [master recovery and shutdown](master-recovery.md) for recovery outputs and operator behavior.
 
 ## Local development
 

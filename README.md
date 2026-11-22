@@ -1,6 +1,6 @@
 # Parallel OCR Pipeline
 
-A native Windows OCR pipeline for CSC611M Machine Project 1, now extended with a direct-Pyro5 master-to-worker workload for Machine Project 2. The MP1 application remains available alongside the distributed commands. MP2 worker nodes can run multiple spawned worker processes and can be deployed as isolated Docker Compose services. Master-side recovery is still being implemented under #24.
+A native Windows OCR pipeline for CSC611M Machine Project 1, now extended with a direct-Pyro5 master-to-worker workload for Machine Project 2. The MP1 application remains available alongside the distributed commands. MP2 worker nodes can run multiple spawned worker processes and can be deployed as isolated Docker Compose services. The master reassigns expired work; see [master recovery and shutdown](docs/master-recovery.md). The integrated stopped-worker acceptance run is tracked in [issue #26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26).
 
 ## Start on Windows
 

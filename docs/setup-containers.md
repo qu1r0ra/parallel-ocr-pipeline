@@ -45,7 +45,7 @@ docker compose cp master:/tmp/ocr_results.csv results/ocr_results.csv
 
 Copy `ocr_results.partial.csv` and `ocr_failures.csv` the same way when the run is incomplete. Then remove containers with `docker compose down`. Worker parents forward termination to their children and wait for bounded cleanup.
 
-Do not treat this setup as the stopped-worker recovery demonstration yet: master-side reassignment and terminal recovery are owned by #24. A worker process or node stopping may currently leave the master incomplete.
+The master reassigns an unfinished image when its 90-second assignment deadline expires, up to two times. See [master recovery and shutdown](master-recovery.md). The integrated stopped-worker demonstration remains in [issue #26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26); allow the deadline to expire after stopping a worker before checking that another worker completes the image.
 
 ## Deploy on separate school-cloud machines later
 
