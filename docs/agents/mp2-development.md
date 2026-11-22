@@ -18,4 +18,10 @@ Use the [team handoff](../team-handoff.md) for phase context. Cloud provisioning
 
 ## Container host
 
-Run every Docker or Compose workflow, including the #26 acceptance and stopped-worker demonstration, on the Ubuntu IdeaPad, linked as T3 environment `qu1r0ra-ideapad-ubuntu`; pass its `environmentId` to T3 tools. The owner's Windows PC has no working virtualization, so its Docker Desktop engine cannot start. Develop and run source checks (`just verify`) on either machine. Completion: container evidence names the Ubuntu host. If the environment reports unreachable, ask the owner to bring the laptop online.
+The owner's Windows PC cannot start Docker Desktop (no virtualization), so every Docker or Compose workflow, including the #26 acceptance and stopped-worker demonstration, runs on the Ubuntu IdeaPad, linked as T3 environment `qu1r0ra-ideapad-ubuntu` (pass its `environmentId` to T3 tools).
+
+1. Edit and run `just verify` in a task worktree on either machine.
+2. Commit and push the task branch; Git carries code to the laptop.
+3. On the laptop, check out that pushed commit, then run the container workflow there. Course inputs (`.env`, dataset, model) stay local to the laptop.
+
+Completion: container evidence records the laptop's hostname and the commit SHA it ran. If the environment reports unreachable, ask the owner to bring the laptop online.
