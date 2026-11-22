@@ -86,3 +86,7 @@ evaluate-pipeline csv *args:
 # Run the behavioral tests.
 test *args:
     uv run --no-sync pytest {{args}}
+
+# Run the #26 cluster acceptance (kill a worker in flight) on the container host.
+acceptance *args:
+    uv run --no-sync python scripts/run_acceptance.py {{args}}
