@@ -87,3 +87,9 @@ The master writes `ocr_results.csv` beside its config only when every discovered
 Run `just benchmark` to compare the full configured image workload with every worker count from 1 through 32. It uses `image_dir` from `config.txt`, overrides `n_workers` for the comparison, and does not modify the config. The benchmark performs one warm-up and ten measured runs per worker count, interleaving measured counts. It sets `OMP_THREAD_LIMIT=1` only for benchmark child processes. Successful run outputs are temporary and removed; if any run fails, the benchmark stops and prints the location of preserved diagnostic artifacts. See [`docs/benchmark-results.md`](docs/benchmark-results.md) for the recorded sweep and visualization.
 
 The benchmark reports each warm-up and measured run's elapsed time and successful loader/recognizer retry counts. It also reports each worker count's ten runtimes, the retry counts per measured run, median, range, and speedup relative to the one-worker median. Speedup uses full pipeline elapsed time, not the sum of per-image CSV times. Record the machine and results when comparing performance; results are specific to the tested host.
+
+## AI Declaration
+This project was created with the assistance of AI coding agents, specifically:
+- <list agents/models>
+
+The aforementioned AI agents assisted with drafting specs, code generation, debugging, and unit tests. Although AI assistance was a major factor in the completion of this project, we declare that we primarily worked on making key decisions in guiding the creation and development of this project. All AI-generated outputs were reviewed, tested, validated, and rigorously studied by the developers before any code deployment. The developers (Bunyi and Umali) retain full responsibility and ownership of the code and are responsible for any oversight.  
