@@ -7,20 +7,28 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from functools import partial
 from pathlib import Path
 from typing import Any
 
+import pytest
 from PIL import Image
 from Pyro5.api import Proxy
+from Pyro5.errors import CommunicationError
 from serpent import tobytes
 
+from parallel_ocr_pipeline import distributed
 from parallel_ocr_pipeline.distributed import (
+    INITIAL_CONNECT_ATTEMPTS,
     MASTER_OBJECT_ID,
     MAX_IMAGE_BYTES,
+    RPC_ATTEMPTS,
+    _run_worker_process,
     run_worker,
 )
+from parallel_ocr_pipeline.distributed_config import WorkerConfig
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 MASTER_SCRIPT = REPOSITORY_ROOT / "scripts" / "run_master.py"
@@ -51,6 +59,24 @@ class MarkerThenWaitRecognizer:
         self._marker_path.write_text(str(os.getpid()), encoding="utf-8")
         time.sleep(30)
         return "late result"
+
+
+class ScriptedMasterProxy:
+    """Replay scripted get_work outcomes; once exhausted, the master never answers."""
+
+    def __init__(self, outcomes: list[dict[str, Any] | Exception]) -> None:
+        self._outcomes = list(outcomes)
+        self.get_work_calls = 0
+
+    def get_work(self, *args: object) -> dict[str, Any]:
+        self.get_work_calls += 1
+        outcome = self._outcomes.pop(0) if self._outcomes else CommunicationError("master is down")
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    def _pyroRelease(self) -> None:
+        pass
 
 
 def _worker_child(config_path: str) -> None:
@@ -871,3 +897,55 @@ def test_pyro_message_limit_allows_serpent_base64_expansion(tmp_path: Path) -> N
             master.communicate()
 
     assert status == 1
+
+
+def _run_worker_process_against(
+    monkeypatch: pytest.MonkeyPatch, master: ScriptedMasterProxy
+) -> int:
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+    return _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event())
+
+
+def test_worker_retries_initial_master_connection_until_master_answers(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(distributed, "INITIAL_CONNECT_BASE_DELAY_SECONDS", 0.0)
+    master = ScriptedMasterProxy(
+        [
+            CommunicationError("name resolution failed"),
+            CommunicationError("name resolution failed"),
+            CommunicationError("name resolution failed"),
+            {"status": "shutdown"},
+        ]
+    )
+
+    assert _run_worker_process_against(monkeypatch, master) == 0
+
+    assert master.get_work_calls == 4
+    assert "Cannot reach master" in capsys.readouterr().err
+
+
+def test_worker_gives_up_after_bounded_initial_retries_when_master_never_answers(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(distributed, "INITIAL_CONNECT_BASE_DELAY_SECONDS", 0.0)
+    master = ScriptedMasterProxy([])
+
+    assert _run_worker_process_against(monkeypatch, master) == 1
+
+    assert master.get_work_calls == INITIAL_CONNECT_ATTEMPTS * RPC_ATTEMPTS
+    stderr = capsys.readouterr().err
+    assert stderr.count("Cannot reach master") == INITIAL_CONNECT_ATTEMPTS - 1
+    assert f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts" in stderr
+
+
+def test_worker_exits_on_connection_failure_after_master_has_answered(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    master = ScriptedMasterProxy([{"status": "wait"}])
+
+    assert _run_worker_process_against(monkeypatch, master) == 1
+
+    assert master.get_work_calls == 1 + RPC_ATTEMPTS
+    assert "Cannot reach master" not in capsys.readouterr().err

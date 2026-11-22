@@ -48,6 +48,9 @@ MAX_ACTIVE_WORKERS = 32
 RPC_TIMEOUT_SECONDS = 20.0
 RPC_ATTEMPTS = 2
 RPC_RETRY_DELAY_SECONDS = 0.2
+# Initial work requests back off 1, 2, 4, 8, and 16 seconds, about 30 seconds in total.
+INITIAL_CONNECT_ATTEMPTS = 6
+INITIAL_CONNECT_BASE_DELAY_SECONDS = 1.0
 WORK_POLL_SECONDS = 0.2
 MASTER_STARTUP_TIMEOUT_SECONDS = 60.0
 MASTER_IDLE_TIMEOUT_SECONDS = 180.0
@@ -643,13 +646,18 @@ def _run_worker_process(
     proxy._pyroMaxRetries = 0
     try:
         recognizer = recognizer_factory()
+        first_work_received = False
         while not stop_event.is_set():
             request_id = uuid.uuid4().hex
             try:
-                response = _rpc_call(proxy, "get_work", node_id, process_id, request_id)
+                if first_work_received:
+                    response = _rpc_call(proxy, "get_work", node_id, process_id, request_id)
+                else:
+                    response = _initial_get_work(proxy, stop_event, node_id, process_id, request_id)
             except CommunicationError as error:
                 print(f"Cannot request work from master: {error}", file=sys.stderr)
                 return 1
+            first_work_received = True
 
             status = response.get("status")
             if status == "shutdown":
@@ -796,6 +804,29 @@ def _rpc_call(proxy: Proxy, method: str, *args: object) -> dict[str, Any]:
                 time.sleep(RPC_RETRY_DELAY_SECONDS * (attempt + 1))
     assert last_error is not None
     raise last_error
+
+
+def _initial_get_work(
+    proxy: Proxy, stop_event: Any, node_id: str, process_id: str, request_id: str
+) -> dict[str, Any]:
+    """Retry the first work request with one idempotency key until the master answers."""
+    attempt = 1
+    while True:
+        try:
+            return _rpc_call(proxy, "get_work", node_id, process_id, request_id)
+        except CommunicationError as error:
+            if attempt >= INITIAL_CONNECT_ATTEMPTS:
+                raise CommunicationError(
+                    f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts: {error}"
+                ) from error
+            delay = INITIAL_CONNECT_BASE_DELAY_SECONDS * 2 ** (attempt - 1)
+            print(
+                f"Cannot reach master (attempt {attempt} of {INITIAL_CONNECT_ATTEMPTS}): {error}; "
+                f"retrying in {delay:g} s",
+                file=sys.stderr,
+            )
+            stop_event.wait(delay)
+            attempt += 1
 
 
 def _master_uri(config: WorkerConfig) -> str:
