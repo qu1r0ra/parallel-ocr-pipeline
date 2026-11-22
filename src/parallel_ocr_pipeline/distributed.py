@@ -818,7 +818,8 @@ def _rpc_call(
             proxy._pyroRelease()
             if attempt + 1 < RPC_ATTEMPTS:
                 time.sleep(RPC_RETRY_DELAY_SECONDS * (attempt + 1))
-    assert last_error is not None
+    if last_error is None:
+        raise CommunicationError("deadline passed before the first attempt")
     raise last_error
 
 
