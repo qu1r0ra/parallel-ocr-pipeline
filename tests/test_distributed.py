@@ -11,6 +11,7 @@ import threading
 import time
 from functools import partial
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -938,6 +939,83 @@ def test_worker_gives_up_after_bounded_initial_retries_when_master_never_answers
     stderr = capsys.readouterr().err
     assert stderr.count("Cannot reach master") == INITIAL_CONNECT_ATTEMPTS - 1
     assert f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts" in stderr
+
+
+class StopRequestedMasterProxy:
+    """Fail every get_work call and request a stop during the first failed attempt."""
+
+    def __init__(self, stop_event: threading.Event) -> None:
+        self._stop_event = stop_event
+        self.get_work_calls = 0
+
+    def get_work(self, *args: object) -> dict[str, Any]:
+        self.get_work_calls += 1
+        self._stop_event.set()
+        raise CommunicationError("name resolution failed")
+
+    def _pyroRelease(self) -> None:
+        pass
+
+
+def test_worker_stops_initial_retries_when_stop_is_requested_during_backoff(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    stop_event = threading.Event()
+    master = StopRequestedMasterProxy(stop_event)
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+
+    assert _run_worker_process(config, "test-node", FixedTextRecognizer, stop_event) == 0
+
+    # One RPC call includes its own explicit retry; no initial backoff retry follows the stop.
+    assert master.get_work_calls == RPC_ATTEMPTS
+    assert "Cannot request work" not in capsys.readouterr().err
+
+
+class FakeClock:
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def monotonic(self) -> float:
+        return self.now
+
+
+class BlackHoleMasterProxy:
+    """Never answer; each call consumes its RPC timeout on a fake clock."""
+
+    def __init__(self, clock: FakeClock) -> None:
+        self._clock = clock
+        self.get_work_calls = 0
+
+    def get_work(self, *args: object) -> dict[str, Any]:
+        self.get_work_calls += 1
+        self._clock.now += distributed.RPC_TIMEOUT_SECONDS
+        raise CommunicationError("no response before the RPC timeout")
+
+    def _pyroRelease(self) -> None:
+        pass
+
+
+def test_worker_stops_initial_retries_at_total_deadline_when_master_is_black_holed(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    clock = FakeClock()
+    monkeypatch.setattr(
+        distributed,
+        "time",
+        SimpleNamespace(monotonic=clock.monotonic, sleep=lambda _seconds: None),
+    )
+    monkeypatch.setattr(distributed, "INITIAL_CONNECT_BASE_DELAY_SECONDS", 0.0)
+    master = BlackHoleMasterProxy(clock)
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+
+    assert _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event()) == 1
+
+    # Each initial attempt costs two 20 s RPC timeouts. Attempt 2 starts at 40 s, and the
+    # next one would start at 80 s, past the 45 s deadline, so only four calls are made.
+    assert master.get_work_calls == 4
+    assert "no answer after 45 s" in capsys.readouterr().err
 
 
 def test_worker_exits_on_connection_failure_after_master_has_answered(
