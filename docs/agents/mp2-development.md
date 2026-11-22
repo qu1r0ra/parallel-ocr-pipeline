@@ -14,4 +14,14 @@ Reuse the image-to-text recognition boundary, recognition evaluation, determinis
 
 Use the live parent and child issues for implementation state and dependencies. Distinguish the successful local container run from integrated recovery and cloud evidence. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
 
-Use the [team handoff](../team-handoff.md) for phase context. Local container testing is available on the Ubuntu laptop; cloud provisioning and benchmark ranges remain deferred as recorded in the spec.
+Use the [team handoff](../team-handoff.md) for phase context. Cloud provisioning and benchmark ranges remain deferred as recorded in the spec.
+
+## Container host
+
+The owner's Windows PC cannot start Docker Desktop (no virtualization), so every Docker or Compose workflow, including the #26 acceptance and stopped-worker demonstration, runs on the Ubuntu IdeaPad, linked as T3 environment `qu1r0ra-ideapad-ubuntu` (pass its `environmentId` to T3 tools).
+
+1. Edit and run `just verify` in a task worktree on either machine.
+2. Commit and push the task branch; Git carries code to the laptop.
+3. On the laptop, check out that pushed commit, then run the container workflow there. Course inputs (`.env`, dataset, model) stay local to the laptop.
+
+Completion: container evidence records the laptop's hostname and the commit SHA it ran. If the environment reports unreachable, ask the owner to bring the laptop online.
