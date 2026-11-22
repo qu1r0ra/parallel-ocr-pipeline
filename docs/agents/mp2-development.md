@@ -33,6 +33,6 @@ Two datasets answer different questions; report each in its own table in [benchm
 - **Local container** (IdeaPad; every container shares 8 logical CPUs): node counts 1 to 16 at 1 process per node, and process counts 1 to 16 at 1 and 2 worker nodes, 1 to 10 at 3. It measures design overhead and contention, not multi-machine scaling.
 - **Cloud** (3 VMs: 1 master, 2 workers): node scaling is one matched pair, 1 active worker (the other VM idle) against 2. Process sweeps run at both. Node count cannot exceed 2, so the process sweeps carry most of this dataset.
 
-Settings where `nodes × procs` exceeds the master's active-process cap are skipped and reported by the runner ([RPC contract](../pyro5-rpc-contract.md) has the cap). A failed sample is invalid and stays in `invalid_samples`. Worker startup behavior is in the [RPC contract](../pyro5-rpc-contract.md).
+The runner skips settings where `nodes × procs` exceeds the master's active-process cap and logs each skip; it does not run them ([RPC contract](../pyro5-rpc-contract.md) has the cap). A failed sample is invalid and stays in `invalid_samples`. Worker startup behavior is in the [RPC contract](../pyro5-rpc-contract.md).
 
 Run the local dataset with `just benchmark-cluster` on the container host. The cloud dataset needs a remote driver first ([#44](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/44)). Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.

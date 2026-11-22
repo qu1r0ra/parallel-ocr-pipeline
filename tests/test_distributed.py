@@ -12,7 +12,7 @@ import time
 from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from PIL import Image
@@ -1018,6 +1018,17 @@ def _use_fake_clock(monkeypatch: pytest.MonkeyPatch, clock: FakeClock) -> None:
         SimpleNamespace(monotonic=clock.monotonic, sleep=lambda _seconds: None),
     )
     monkeypatch.setattr(distributed, "INITIAL_CONNECT_BASE_DELAY_SECONDS", 0.0)
+
+
+def test_rpc_call_with_passed_deadline_raises_without_calling_master() -> None:
+    master = TimedMasterProxy(FakeClock())
+
+    with pytest.raises(CommunicationError, match="deadline passed"):
+        distributed._rpc_call(
+            cast(Proxy, master), "get_work", "node", "process", "request", deadline=float("-inf")
+        )
+
+    assert master.calls == []
 
 
 def test_worker_bounds_initial_connect_to_total_deadline_when_master_is_black_holed(
