@@ -793,10 +793,21 @@ def _failure_outcome(stage: str, image_id: object, error: Exception) -> dict[str
     }
 
 
-def _rpc_call(proxy: Proxy, method: str, *args: object) -> dict[str, Any]:
-    """Retry one RPC explicitly with the same idempotency key on a child-owned proxy."""
+def _rpc_call(
+    proxy: Proxy, method: str, *args: object, deadline: float | None = None
+) -> dict[str, Any]:
+    """Retry one RPC explicitly with the same idempotency key on a child-owned proxy.
+
+    With a ``deadline`` (a ``time.monotonic()`` value), each attempt's timeout is capped to the
+    time left, and no attempt starts once the deadline has passed.
+    """
     last_error: CommunicationError | None = None
     for attempt in range(RPC_ATTEMPTS):
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            proxy._pyroTimeout = min(RPC_TIMEOUT_SECONDS, remaining)
         try:
             result = getattr(proxy, method)(*args)
             if not isinstance(result, dict):
@@ -819,31 +830,38 @@ def _initial_get_work(
     Returns None when a stop is requested before the master answers.
     """
     started = time.monotonic()
+    deadline = started + INITIAL_CONNECT_DEADLINE_SECONDS
     attempt = 1
-    while True:
-        try:
-            return _rpc_call(proxy, "get_work", node_id, process_id, request_id)
-        except CommunicationError as error:
-            if stop_event.is_set():
-                return None
-            if attempt >= INITIAL_CONNECT_ATTEMPTS:
-                raise CommunicationError(
-                    f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts: {error}"
-                ) from error
-            delay = INITIAL_CONNECT_BASE_DELAY_SECONDS * 2 ** (attempt - 1)
-            if time.monotonic() - started + delay >= INITIAL_CONNECT_DEADLINE_SECONDS:
-                raise CommunicationError(
-                    f"no answer after {INITIAL_CONNECT_DEADLINE_SECONDS:g} s: {error}"
-                ) from error
-            print(
-                f"Cannot reach master (attempt {attempt} of {INITIAL_CONNECT_ATTEMPTS}): {error}; "
-                f"retrying in {delay:g} s",
-                file=sys.stderr,
-            )
-            stop_event.wait(delay)
-            if stop_event.is_set():
-                return None
-            attempt += 1
+    try:
+        while True:
+            try:
+                return _rpc_call(
+                    proxy, "get_work", node_id, process_id, request_id, deadline=deadline
+                )
+            except CommunicationError as error:
+                if stop_event.is_set():
+                    return None
+                if attempt >= INITIAL_CONNECT_ATTEMPTS:
+                    raise CommunicationError(
+                        f"no answer after {INITIAL_CONNECT_ATTEMPTS} attempts: {error}"
+                    ) from error
+                delay = INITIAL_CONNECT_BASE_DELAY_SECONDS * 2 ** (attempt - 1)
+                if time.monotonic() - started + delay >= INITIAL_CONNECT_DEADLINE_SECONDS:
+                    raise CommunicationError(
+                        f"no answer after {INITIAL_CONNECT_DEADLINE_SECONDS:g} s: {error}"
+                    ) from error
+                print(
+                    f"Cannot reach master (attempt {attempt} of {INITIAL_CONNECT_ATTEMPTS}): {error}; "
+                    f"retrying in {delay:g} s",
+                    file=sys.stderr,
+                )
+                stop_event.wait(delay)
+                if stop_event.is_set():
+                    return None
+                attempt += 1
+    finally:
+        # Calls after the first response keep the full RPC timeout.
+        proxy._pyroTimeout = RPC_TIMEOUT_SECONDS
 
 
 def _master_uri(config: WorkerConfig) -> str:

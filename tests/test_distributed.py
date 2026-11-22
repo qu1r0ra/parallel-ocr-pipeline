@@ -980,42 +980,108 @@ class FakeClock:
         return self.now
 
 
-class BlackHoleMasterProxy:
-    """Never answer; each call consumes its RPC timeout on a fake clock."""
+class TimedMasterProxy:
+    """Replay scripted get_work outcomes on a fake clock; once exhausted, the master never answers.
 
-    def __init__(self, clock: FakeClock) -> None:
+    Each call records its start time and the proxy timeout in force. A failing call consumes
+    that timeout on the fake clock, as a black-holed master does.
+    """
+
+    def __init__(
+        self, clock: FakeClock, outcomes: list[dict[str, Any] | Exception] | None = None
+    ) -> None:
         self._clock = clock
-        self.get_work_calls = 0
+        self._outcomes = list(outcomes or [])
+        self._pyroTimeout = distributed.RPC_TIMEOUT_SECONDS
+        self.calls: list[tuple[float, float]] = []
 
     def get_work(self, *args: object) -> dict[str, Any]:
-        self.get_work_calls += 1
-        self._clock.now += distributed.RPC_TIMEOUT_SECONDS
-        raise CommunicationError("no response before the RPC timeout")
+        self.calls.append((self._clock.now, self._pyroTimeout))
+        outcome = (
+            self._outcomes.pop(0)
+            if self._outcomes
+            else CommunicationError("no response before the RPC timeout")
+        )
+        if isinstance(outcome, Exception):
+            self._clock.now += self._pyroTimeout
+            raise outcome
+        return outcome
 
     def _pyroRelease(self) -> None:
         pass
 
 
-def test_worker_stops_initial_retries_at_total_deadline_when_master_is_black_holed(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    clock = FakeClock()
+def _use_fake_clock(monkeypatch: pytest.MonkeyPatch, clock: FakeClock) -> None:
     monkeypatch.setattr(
         distributed,
         "time",
         SimpleNamespace(monotonic=clock.monotonic, sleep=lambda _seconds: None),
     )
     monkeypatch.setattr(distributed, "INITIAL_CONNECT_BASE_DELAY_SECONDS", 0.0)
-    master = BlackHoleMasterProxy(clock)
+
+
+def test_worker_bounds_initial_connect_to_total_deadline_when_master_is_black_holed(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    clock = FakeClock()
+    _use_fake_clock(monkeypatch, clock)
+    master = TimedMasterProxy(clock)
     monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
     config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
 
     assert _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event()) == 1
 
-    # Each initial attempt costs two 20 s RPC timeouts. Attempt 2 starts at 40 s, and the
-    # next one would start at 80 s, past the 45 s deadline, so only four calls are made.
-    assert master.get_work_calls == 4
+    assert clock.now <= distributed.INITIAL_CONNECT_DEADLINE_SECONDS
     assert "no answer after 45 s" in capsys.readouterr().err
+
+
+def test_worker_caps_each_initial_call_timeout_to_the_remaining_deadline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = FakeClock()
+    _use_fake_clock(monkeypatch, clock)
+    master = TimedMasterProxy(clock)
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+
+    assert _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event()) == 1
+
+    assert master.calls
+    deadline = distributed.INITIAL_CONNECT_DEADLINE_SECONDS
+    for start, timeout in master.calls:
+        assert start + timeout <= deadline, f"call at {start} s may wait until {start + timeout} s"
+
+
+def test_worker_restores_rpc_timeout_after_first_master_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = FakeClock()
+    _use_fake_clock(monkeypatch, clock)
+    no_response = CommunicationError("no response before the RPC timeout")
+    master = TimedMasterProxy(
+        clock, [no_response, no_response, {"status": "wait"}, {"status": "shutdown"}]
+    )
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+
+    assert _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event()) == 0
+
+    # The last call is the first one after the master answered: it must get the full 20 s again.
+    assert master.calls[-1][1] == distributed.RPC_TIMEOUT_SECONDS
+
+
+def test_worker_restores_rpc_timeout_when_initial_connect_gives_up(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = FakeClock()
+    _use_fake_clock(monkeypatch, clock)
+    master = TimedMasterProxy(clock)
+    monkeypatch.setattr(distributed, "Proxy", lambda _uri: master)
+    config = WorkerConfig(master_host="127.0.0.1", master_port=1, n_workers=1)
+
+    assert _run_worker_process(config, "test-node", FixedTextRecognizer, threading.Event()) == 1
+
+    assert master._pyroTimeout == distributed.RPC_TIMEOUT_SECONDS
 
 
 def test_worker_exits_on_connection_failure_after_master_has_answered(
