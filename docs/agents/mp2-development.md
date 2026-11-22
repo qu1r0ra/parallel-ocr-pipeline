@@ -14,7 +14,7 @@ Reuse the image-to-text recognition boundary, recognition evaluation, determinis
 
 Use the live parent and child issues for implementation state and dependencies. Distinguish the successful local container run from integrated recovery and cloud evidence. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
 
-Use the [team handoff](../team-handoff.md) for phase context. Cloud provisioning and benchmark ranges remain deferred as recorded in the spec.
+Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud provisioning remains deferred as recorded in the spec.
 
 ## Container host
 
@@ -25,3 +25,12 @@ The owner's Windows PC cannot start Docker Desktop (no virtualization), so every
 3. On the laptop, check out that pushed commit, then run the container workflow there. Course inputs (`.env`, dataset, model) stay local to the laptop.
 
 Completion: container evidence records the laptop's hostname and the commit SHA it ran. If the environment reports unreachable, ask the owner to bring the laptop online.
+
+## Benchmark evidence
+
+Two datasets answer different questions; report each in its own table in [benchmark results](../benchmark-results.md) and never merge them.
+
+- **Local container** (IdeaPad; every container shares 8 logical CPUs): node counts 1 to 16 at 1 process per node, and process counts 1 to 16 at 1, 2, and 3 worker nodes. It measures design overhead and contention, not multi-machine scaling.
+- **Cloud** (3 VMs: 1 master, 2 workers): node scaling is one matched pair, 1 active worker (the other VM idle) against 2. Process sweeps run at both. Node count cannot exceed 2, so the process sweeps carry most of this dataset.
+
+Run both with `just benchmark-cluster` on the host that owns the cluster. Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.

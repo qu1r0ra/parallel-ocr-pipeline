@@ -28,7 +28,7 @@ The shared RPC foundation (#23) and worker/container implementation (#25) are me
 
 ### Remaining #27 work
 
-- **Cloud VM runs (open):** each partner gets one master VM plus a one-worker and a two-worker setup. Run `just benchmark-cluster` with `--skip` and node counts matching each setup, and report the VM data separately from the local container data.
+- **Cloud VM runs (open):** the cloud topology is 3 VMs (1 master, 2 workers), measured as its own dataset; see [benchmark evidence](agents/mp2-development.md#benchmark-evidence). Run `just benchmark-cluster` with node counts 1 and 2 and the process range chosen from the VMs' vCPU count.
 - **Deck (open):** author and ownership are undecided. Sections needed: overview, distribution, synchronization, recovery evidence ([cluster acceptance](cluster-acceptance.md)), and benchmarking.
 - **Submission (human action):** commit everything, then run `just package-submission --csv <output.csv> --deck <deck.pptx>`. It builds the source-only ZIP from `HEAD`, rejects environments, secrets, course inputs, models, and run outputs, scores the CSV, and requires the deck. The handout asks for ZIP, CSV, and PPT only; no video.
 
