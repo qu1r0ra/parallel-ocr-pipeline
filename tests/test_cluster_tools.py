@@ -60,3 +60,12 @@ def test_plot_render_draws_both_panels() -> None:
     ]
     svg = plot_benchmark.render(rows, "nodes", "worker nodes", "node sweep")
     assert svg.startswith("<svg") and svg.count("<polyline") == 3
+
+
+def test_summarize_filters_process_sweep_by_node_count() -> None:
+    def proc(nodes: int, procs: int, window: float) -> dict:
+        return {"sweep": "procs", "nodes": nodes, "procs": procs, "window_s": window, "valid": True}
+
+    samples = [proc(2, 1, 6.0), proc(2, 2, 3.0), proc(3, 1, 4.0), proc(3, 2, 2.0)]
+    rows = benchmark_cluster.summarize(samples, "procs", "procs", 3)
+    assert [(r["procs"], r["mean_s"]) for r in rows] == [(1, 4.0), (2, 2.0)]
