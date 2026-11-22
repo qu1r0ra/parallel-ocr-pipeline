@@ -32,4 +32,4 @@ just test tests/test_distributed.py
 just verify
 ```
 
-The distributed tests use real Pyro5 RPCs with a master subprocess and spawn-based worker processes. They cover replay, stale-result rejection, stopped-worker reassignment, retry exhaustion, output preservation, cancellation, bounded inactivity, and clean shutdown. The local-container stopped-worker demonstration with real OCR remains the integrated acceptance work in [issue #26](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/26); allow the 90-second assignment deadline when planning that run.
+The distributed tests use real Pyro5 RPCs with a master subprocess and spawn-based worker processes. They cover replay, stale-result rejection, stopped-worker reassignment, retry exhaustion, output preservation, cancellation, bounded inactivity, and clean shutdown. The container stopped-worker demonstration with real OCR is recorded in [cluster acceptance](cluster-acceptance.md); it takes about 100 seconds because the 90-second assignment deadline must expire.

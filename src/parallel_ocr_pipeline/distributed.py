@@ -182,6 +182,12 @@ class MasterCoordinator:
             self._active_by_process[process_key] = assignment.token
             self._building_requests.add(key)
             self._last_progress = now
+            print(
+                f"ASSIGN image_id={image.image_id} file={image.path.name} "
+                f"node={node_id} process={process_id} "
+                f"attempt={self._reassignments_by_image.get(image.image_id, 0) + 1}",
+                flush=True,
+            )
 
         response = self._read_assignment(assignment)
         with self._condition:
@@ -406,6 +412,12 @@ class MasterCoordinator:
             )
 
             reassignments = self._reassignments_by_image.get(assignment.image.image_id, 0)
+            outcome = "requeued" if reassignments < self._max_reassignments else "failed"
+            print(
+                f"EXPIRE image_id={assignment.image.image_id} file={assignment.image.path.name} "
+                f"node={assignment.node_id} process={assignment.process_id} outcome={outcome}",
+                flush=True,
+            )
             if reassignments < self._max_reassignments:
                 self._reassignments_by_image[assignment.image.image_id] = reassignments + 1
                 self._available.put_nowait(assignment.image)
