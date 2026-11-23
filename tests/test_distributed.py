@@ -1104,3 +1104,39 @@ def test_worker_exits_on_connection_failure_after_master_has_answered(
 
     assert master.get_work_calls == 1 + RPC_ATTEMPTS
     assert "Cannot reach master" not in capsys.readouterr().err
+
+
+def test_master_request_loop_polls_often_enough_to_exit_promptly(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    images = tmp_path / "images"
+    images.mkdir()
+    Image.new("RGB", (8, 8)).save(images / "page.png")
+    config = tmp_path / "master_config.txt"
+    config.write_text(f"image_dir={images}\nport={_free_port()}\n", encoding="utf-8")
+    poll_seconds_seen: list[float] = []
+
+    class RecordingDaemon:
+        def __init__(self, host: str, port: int) -> None:
+            pass
+
+        def register(self, obj: object, objectId: str) -> str:
+            return f"PYRO:{objectId}@localhost:0"
+
+        def requestLoop(self, loopCondition: Any) -> None:
+            poll_seconds_seen.append(distributed.Pyro5.api.config.POLLTIMEOUT)
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(distributed.Pyro5.api, "Daemon", RecordingDaemon)
+    # Restored after the test; run_master is expected to set it for the master process.
+    monkeypatch.setattr(distributed.Pyro5.api.config, "POLLTIMEOUT", 2.0)
+
+    distributed.run_master(config)
+
+    # With POLLTIMEOUT at 2.0 s, a finished master can keep serving for up to 2 s after its
+    # shutdown condition flips. The bound keeps that tail well under a second.
+    assert len(poll_seconds_seen) == 1
+    assert poll_seconds_seen[0] <= 0.5
