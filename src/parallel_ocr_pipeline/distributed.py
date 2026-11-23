@@ -54,6 +54,9 @@ INITIAL_CONNECT_BASE_DELAY_SECONDS = 1.0
 # No new initial attempt starts once this many seconds have passed since the first one.
 INITIAL_CONNECT_DEADLINE_SECONDS = 45.0
 WORK_POLL_SECONDS = 0.2
+# Pyro5 re-checks the shutdown condition only after each poll. The 2 s default left a
+# finished master serving for up to 2 s, so the master polls at 0.1 s.
+MASTER_POLL_SECONDS = 0.1
 MASTER_STARTUP_TIMEOUT_SECONDS = 60.0
 MASTER_IDLE_TIMEOUT_SECONDS = 180.0
 # Budget two 30-second OCR attempts plus 30 seconds for transfer and local processing.
@@ -506,6 +509,7 @@ def run_master(config_path: str | Path) -> int:
         Pyro5.api.config.MAX_MESSAGE_SIZE = (  # pyright: ignore[reportAttributeAccessIssue]
             MAX_RPC_MESSAGE_BYTES
         )
+        Pyro5.api.config.POLLTIMEOUT = MASTER_POLL_SECONDS  # pyright: ignore[reportAttributeAccessIssue]
         daemon = Pyro5.api.Daemon(host="0.0.0.0", port=config.port)
         uri = daemon.register(coordinator, objectId=MASTER_OBJECT_ID)
         print(f"Master ready at {uri}; queued {len(coordinator._images)} image(s).", flush=True)
