@@ -83,11 +83,11 @@ The submission candidate CSV and its historical validation details remain docume
 
 ## MP2 benchmark method
 
-- Run on the Ubuntu IdeaPad (`qu1r0ra-ideapad-ubuntu`) at commit `35f2cc9`, one master and `worker` replicas started by `docker compose up`. Each sample builds a fresh cluster (`down -v`, `create --scale`, copy the supplied model into each worker, `up`), so no state carries between samples.
+- Run on the Ubuntu IdeaPad (`qu1r0ra-ideapad-ubuntu`) at commit `4dd29ad` in a single session, one master and `worker` replicas started by `docker compose up`. Each sample builds a fresh cluster (`down -v`, `create --scale`, copy the supplied model into each worker, `up`), so no state carries between samples.
 - **Node sweep:** 1 to 16 worker nodes at 1 process per node, a linear sweep like MP1's. The master is not counted in `n`.
-- **Processes-per-node sweeps:** 1 to 16 processes per node on 1 and 2 worker nodes, and 1 to 10 on 3 worker nodes. The master admits at most 32 active worker processes cluster-wide (`MAX_ACTIVE_WORKERS`), so 3 nodes × 11 to 16 processes is not a measurement. The v2 sweep recorded those 30 samples as invalid (`invalid_samples`); the current runner skips such settings and does not run them.
+- **Processes-per-node sweeps:** 1 to 16 processes per node on 1 and 2 worker nodes, and 1 to 10 on 3 worker nodes. The master admits at most 32 active worker processes cluster-wide (`MAX_ACTIVE_WORKERS`), so 3 nodes × 11 to 16 processes is not a measurement. The runner skips such settings and does not run them.
 - **Repetitions:** 5 per setting, interleaved within each repetition so host drift reaches every setting.
-- **Validation:** a sample counts only if the master and all workers exit 0, the CSV has exactly one row per image with unique filenames, the master logged exactly one assignment per image, and `evaluate-pipeline` passes. 320 samples ran; `invalid_samples` = 30, all excluded from the tables (causes under Limits).
+- **Validation:** a sample counts only if the master and all workers exit 0, the CSV has exactly one row per image with unique filenames, the master logged exactly one assignment per image, and `evaluate-pipeline` passes. 290 samples ran and all 290 are valid (`invalid_samples` = 0).
 - **Constant:** the same 100 images and supplied `eng.traineddata`, `OMP_THREAD_LIMIT=1` (set in the image), the 90 s assignment deadline, and no fault injection. Fault injection is evidenced separately in [cluster acceptance](cluster-acceptance.md).
 - **Timing boundaries**, both reported:
   - **Window** (`window_s`): the master's first `ASSIGN` log timestamp to its `Completed` log timestamp, read with `docker compose logs -t`. This is processing time and the basis of S and E.
@@ -99,7 +99,7 @@ The submission candidate CSV and its historical validation details remain docume
 
 | Item | Value |
 |---|---|
-| Host | IdeaPad laptop, Ubuntu (Linux 7.0.0-43), on AC power, CPU governor `powersave` |
+| Host | IdeaPad laptop, Ubuntu 26.04.1 (Linux 7.0.0-43), on AC power, CPU governor `powersave` |
 | CPU | 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz; 4 cores / 8 logical processors |
 | Memory | 14 GiB total |
 | Container resources | None set: `compose.yaml` has no CPU or memory limits, so all containers and the Docker daemon share the same 8 logical CPUs |
@@ -116,24 +116,22 @@ The submission candidate CSV and its historical validation details remain docume
 
 | Worker nodes | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 7.939 | 0.004 | 7.935–7.944 | 1.000× | 1.000 | 14.52 |
-| 2 | 5 | 5.870 | 0.012 | 5.857–5.887 | 1.352× | 0.676 | 12.53 |
-| 3 | 5 | 3.740 | 0.065 | 3.648–3.829 | 2.123× | 0.708 | 10.52 |
-| 4 | 5 | 3.690 | 0.040 | 3.636–3.749 | 2.152× | 0.538 | 10.53 |
-| 5 | 5 | 2.697 | 0.049 | 2.659–2.773 | 2.944× | 0.589 | 9.65 |
-| 6 | 5 | 2.921 | 0.043 | 2.855–2.964 | 2.718× | 0.453 | 9.93 |
-| 7 | 5 | 3.228 | 0.047 | 3.179–3.292 | 2.459× | 0.351 | 10.30 |
-| 8 | 5 | 3.523 | 0.048 | 3.453–3.584 | 2.253× | 0.282 | 10.53 |
-| 9 | 5 | 3.536 | 0.027 | 3.489–3.556 | 2.245× | 0.249 | 10.55 |
-| 10 | 5 | 3.601 | 0.024 | 3.576–3.638 | 2.205× | 0.220 | 10.68 |
-| 11 | 5 | 5.668 | 0.108 | 5.563–5.822 | 1.401× | 0.127 | 12.71 |
-| 12 | 5 | 4.816 | 1.055 | 3.929–6.021 | 1.648× | 0.137 | 11.99 |
-| 13 | 5 | 4.737 | 0.868 | 4.190–6.271 | 1.676× | 0.129 | 11.97 |
-| 14 | 5 | 4.712 | 0.118 | 4.532–4.824 | 1.685× | 0.120 | 11.90 |
-| 15 | 5 | 4.686 | 0.227 | 4.354–4.910 | 1.694× | 0.113 | 11.84 |
-| 16 | 5 | 5.148 | 0.193 | 4.932–5.368 | 1.542× | 0.096 | 12.23 |
-
-Nodes 11 to 16 were rerun after the worker initial-connect retry (#38) landed, at commit `1506c4f`; all 30 of those samples are valid.
+| 1 | 5 | 7.396 | 0.096 | 7.239–7.502 | 1.000× | 1.000 | 14.01 |
+| 2 | 5 | 4.191 | 0.085 | 4.062–4.268 | 1.765× | 0.882 | 10.89 |
+| 3 | 5 | 3.086 | 0.018 | 3.068–3.109 | 2.396× | 0.799 | 9.89 |
+| 4 | 5 | 2.673 | 0.089 | 2.539–2.766 | 2.767× | 0.692 | 9.55 |
+| 5 | 5 | 2.682 | 0.093 | 2.523–2.759 | 2.757× | 0.551 | 9.68 |
+| 6 | 5 | 2.692 | 0.104 | 2.511–2.764 | 2.747× | 0.458 | 9.79 |
+| 7 | 5 | 2.843 | 0.067 | 2.784–2.942 | 2.601× | 0.372 | 9.93 |
+| 8 | 5 | 3.054 | 0.080 | 2.942–3.134 | 2.422× | 0.303 | 10.17 |
+| 9 | 5 | 3.291 | 0.084 | 3.149–3.366 | 2.247× | 0.250 | 10.47 |
+| 10 | 5 | 3.563 | 0.057 | 3.467–3.614 | 2.076× | 0.208 | 10.81 |
+| 11 | 5 | 3.952 | 0.117 | 3.762–4.075 | 1.871× | 0.170 | 11.21 |
+| 12 | 5 | 4.237 | 0.078 | 4.182–4.359 | 1.746× | 0.145 | 11.43 |
+| 13 | 5 | 4.397 | 0.114 | 4.264–4.532 | 1.682× | 0.129 | 11.77 |
+| 14 | 5 | 4.604 | 0.068 | 4.517–4.687 | 1.606× | 0.115 | 11.92 |
+| 15 | 5 | 4.864 | 0.119 | 4.715–5.022 | 1.520× | 0.101 | 12.23 |
+| 16 | 5 | 5.061 | 0.060 | 4.989–5.143 | 1.461× | 0.091 | 12.45 |
 
 ![Processes-per-node sweep on 1 worker node: processing window and speedup](benchmark-cluster/proc_sweep_1nodes.svg)
 
@@ -141,22 +139,22 @@ Nodes 11 to 16 were rerun after the worker initial-connect retry (#38) landed, a
 
 | Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 7.908 | 0.009 | 7.894–7.915 | 1.000× | 1.000 | 14.53 |
-| 2 | 5 | 5.895 | 0.013 | 5.882–5.914 | 1.341× | 0.671 | 12.53 |
-| 3 | 5 | 3.876 | 0.009 | 3.863–3.887 | 2.040× | 0.680 | 10.54 |
-| 4 | 5 | 3.882 | 0.006 | 3.871–3.888 | 2.037× | 0.509 | 10.54 |
-| 5 | 5 | 2.366 | 0.005 | 2.360–2.374 | 3.342× | 0.668 | 9.03 |
-| 6 | 5 | 2.360 | 0.016 | 2.334–2.375 | 3.351× | 0.558 | 9.03 |
-| 7 | 5 | 2.275 | 0.003 | 2.271–2.277 | 3.476× | 0.497 | 9.05 |
-| 8 | 5 | 2.244 | 0.007 | 2.233–2.250 | 3.525× | 0.441 | 9.08 |
-| 9 | 5 | 2.474 | 0.055 | 2.398–2.523 | 3.197× | 0.355 | 9.42 |
-| 10 | 5 | 2.501 | 0.044 | 2.462–2.564 | 3.162× | 0.316 | 9.46 |
-| 11 | 5 | 2.586 | 0.087 | 2.487–2.675 | 3.057× | 0.278 | 9.57 |
-| 12 | 5 | 2.728 | 0.100 | 2.632–2.845 | 2.899× | 0.242 | 9.74 |
-| 13 | 5 | 2.761 | 0.079 | 2.699–2.891 | 2.864× | 0.220 | 9.86 |
-| 14 | 5 | 2.846 | 0.151 | 2.602–3.008 | 2.779× | 0.198 | 9.89 |
-| 15 | 5 | 2.914 | 0.112 | 2.810–3.062 | 2.713× | 0.181 | 10.08 |
-| 16 | 5 | 3.074 | 0.163 | 2.878–3.295 | 2.572× | 0.161 | 10.23 |
+| 1 | 5 | 7.441 | 0.052 | 7.395–7.509 | 1.000× | 1.000 | 14.09 |
+| 2 | 5 | 4.190 | 0.011 | 4.174–4.203 | 1.776× | 0.888 | 10.83 |
+| 3 | 5 | 3.011 | 0.001 | 3.009–3.012 | 2.471× | 0.824 | 9.67 |
+| 4 | 5 | 2.486 | 0.071 | 2.381–2.578 | 2.993× | 0.748 | 9.15 |
+| 5 | 5 | 2.455 | 0.041 | 2.382–2.478 | 3.031× | 0.606 | 9.13 |
+| 6 | 5 | 2.400 | 0.046 | 2.377–2.482 | 3.101× | 0.517 | 9.08 |
+| 7 | 5 | 2.252 | 0.046 | 2.184–2.289 | 3.304× | 0.472 | 9.06 |
+| 8 | 5 | 2.088 | 0.059 | 2.036–2.158 | 3.563× | 0.445 | 8.95 |
+| 9 | 5 | 2.215 | 0.044 | 2.164–2.275 | 3.359× | 0.373 | 9.19 |
+| 10 | 5 | 2.267 | 0.058 | 2.185–2.348 | 3.282× | 0.328 | 9.30 |
+| 11 | 5 | 2.308 | 0.086 | 2.199–2.424 | 3.224× | 0.293 | 9.38 |
+| 12 | 5 | 2.506 | 0.076 | 2.410–2.603 | 2.969× | 0.247 | 9.51 |
+| 13 | 5 | 2.575 | 0.072 | 2.502–2.677 | 2.890× | 0.222 | 9.62 |
+| 14 | 5 | 2.646 | 0.081 | 2.528–2.748 | 2.813× | 0.201 | 9.82 |
+| 15 | 5 | 2.743 | 0.087 | 2.656–2.870 | 2.712× | 0.181 | 9.93 |
+| 16 | 5 | 2.784 | 0.078 | 2.655–2.836 | 2.673× | 0.167 | 10.03 |
 
 
 ![Processes-per-node sweep on 2 worker nodes: processing window and speedup](benchmark-cluster/proc_sweep_2nodes.svg)
@@ -165,22 +163,22 @@ Nodes 11 to 16 were rerun after the worker initial-connect retry (#38) landed, a
 
 | Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 5.863 | 0.006 | 5.857–5.870 | 1.000× | 1.000 | 12.54 |
-| 2 | 5 | 3.842 | 0.012 | 3.830–3.862 | 1.526× | 0.763 | 10.53 |
-| 3 | 5 | 2.350 | 0.009 | 2.338–2.360 | 2.495× | 0.832 | 9.16 |
-| 4 | 5 | 2.453 | 0.057 | 2.385–2.516 | 2.390× | 0.598 | 9.37 |
-| 5 | 5 | 2.601 | 0.024 | 2.563–2.623 | 2.254× | 0.451 | 9.60 |
-| 6 | 5 | 2.761 | 0.188 | 2.535–3.011 | 2.124× | 0.354 | 9.85 |
-| 7 | 5 | 2.903 | 0.213 | 2.706–3.249 | 2.020× | 0.289 | 10.10 |
-| 8 | 5 | 3.026 | 0.130 | 2.820–3.169 | 1.938× | 0.242 | 10.35 |
-| 9 | 5 | 3.121 | 0.164 | 2.868–3.297 | 1.878× | 0.209 | 10.52 |
-| 10 | 5 | 3.285 | 0.139 | 3.108–3.437 | 1.785× | 0.179 | 10.62 |
-| 11 | 5 | 5.048 | 0.264 | 4.733–5.384 | 1.162× | 0.106 | 12.59 |
-| 12 | 5 | 5.021 | 0.267 | 4.679–5.355 | 1.168× | 0.097 | 12.65 |
-| 13 | 5 | 5.088 | 0.124 | 4.943–5.224 | 1.152× | 0.089 | 12.64 |
-| 14 | 5 | 4.971 | 0.283 | 4.492–5.221 | 1.179× | 0.084 | 12.64 |
-| 15 | 5 | 4.544 | 0.332 | 4.181–5.008 | 1.290× | 0.086 | 12.64 |
-| 16 | 5 | 4.831 | 0.440 | 4.153–5.327 | 1.214× | 0.076 | 12.66 |
+| 1 | 5 | 4.213 | 0.052 | 4.144–4.259 | 1.000× | 1.000 | 10.90 |
+| 2 | 5 | 2.538 | 0.055 | 2.469–2.589 | 1.660× | 0.830 | 9.27 |
+| 3 | 5 | 2.350 | 0.013 | 2.334–2.365 | 1.793× | 0.598 | 9.18 |
+| 4 | 5 | 2.172 | 0.065 | 2.118–2.277 | 1.940× | 0.485 | 9.18 |
+| 5 | 5 | 2.395 | 0.078 | 2.319–2.524 | 1.759× | 0.352 | 9.38 |
+| 6 | 5 | 2.531 | 0.115 | 2.355–2.662 | 1.664× | 0.277 | 9.65 |
+| 7 | 5 | 2.697 | 0.093 | 2.576–2.826 | 1.562× | 0.223 | 9.92 |
+| 8 | 5 | 2.948 | 0.215 | 2.691–3.213 | 1.429× | 0.179 | 10.17 |
+| 9 | 5 | 3.018 | 0.090 | 2.916–3.109 | 1.396× | 0.155 | 10.43 |
+| 10 | 5 | 3.101 | 0.131 | 2.925–3.229 | 1.359× | 0.136 | 10.72 |
+| 11 | 5 | 3.428 | 0.335 | 2.928–3.778 | 1.229× | 0.112 | 10.99 |
+| 12 | 5 | 3.571 | 0.202 | 3.379–3.868 | 1.180× | 0.098 | 11.24 |
+| 13 | 5 | 3.589 | 0.332 | 3.238–4.057 | 1.174× | 0.090 | 11.46 |
+| 14 | 5 | 3.822 | 0.289 | 3.487–4.189 | 1.102× | 0.079 | 11.68 |
+| 15 | 5 | 3.953 | 0.318 | 3.535–4.266 | 1.066× | 0.071 | 11.97 |
+| 16 | 5 | 4.316 | 0.309 | 3.986–4.705 | 0.976× | 0.061 | 12.21 |
 
 
 ![Processes-per-node sweep on 3 worker nodes: processing window and speedup](benchmark-cluster/proc_sweep_3nodes.svg)
@@ -189,35 +187,36 @@ Nodes 11 to 16 were rerun after the worker initial-connect retry (#38) landed, a
 
 | Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
 |---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 5 | 3.752 | 0.036 | 3.704–3.801 | 1.000× | 1.000 | 10.54 |
-| 2 | 5 | 2.479 | 0.083 | 2.359–2.552 | 1.514× | 0.757 | 9.38 |
-| 3 | 5 | 2.760 | 0.142 | 2.657–2.983 | 1.359× | 0.453 | 9.73 |
-| 4 | 5 | 2.963 | 0.137 | 2.845–3.200 | 1.266× | 0.317 | 10.07 |
-| 5 | 5 | 3.157 | 0.135 | 3.032–3.353 | 1.188× | 0.238 | 10.44 |
-| 6 | 5 | 3.149 | 0.210 | 2.837–3.332 | 1.191× | 0.199 | 10.58 |
-| 7 | 5 | 5.123 | 0.166 | 4.834–5.232 | 0.732× | 0.105 | 12.61 |
-| 8 | 5 | 4.913 | 0.190 | 4.699–5.155 | 0.764× | 0.095 | 12.67 |
-| 9 | 5 | 4.757 | 0.093 | 4.625–4.879 | 0.789× | 0.088 | 12.66 |
-| 10 | 5 | 4.594 | 0.223 | 4.372–4.878 | 0.817× | 0.082 | 12.68 |
+| 1 | 5 | 3.141 | 0.071 | 3.067–3.224 | 1.000× | 1.000 | 9.95 |
+| 2 | 5 | 2.481 | 0.146 | 2.295–2.660 | 1.266× | 0.633 | 9.37 |
+| 3 | 5 | 2.398 | 0.031 | 2.351–2.437 | 1.310× | 0.437 | 9.32 |
+| 4 | 5 | 2.604 | 0.099 | 2.442–2.705 | 1.206× | 0.302 | 9.81 |
+| 5 | 5 | 2.835 | 0.183 | 2.625–3.112 | 1.108× | 0.222 | 10.21 |
+| 6 | 5 | 3.048 | 0.200 | 2.800–3.318 | 1.031× | 0.172 | 10.57 |
+| 7 | 5 | 3.466 | 0.250 | 3.113–3.714 | 0.906× | 0.129 | 11.03 |
+| 8 | 5 | 3.668 | 0.201 | 3.494–3.983 | 0.856× | 0.107 | 11.36 |
+| 9 | 5 | 3.960 | 0.286 | 3.607–4.334 | 0.793× | 0.088 | 11.76 |
+| 10 | 5 | 3.891 | 0.137 | 3.657–4.009 | 0.807× | 0.081 | 12.07 |
 
 ## MP2 analysis
 
-- **Best measured configuration: 1 worker node × 8 processes**, a 2.244 s mean window (stdev 0.007 s), S = 3.53 against 1 process. Seven processes (2.275 s) and the best multi-node settings are close: 2 nodes × 3 processes 2.350 s, 3 nodes × 2 processes 2.479 s, and the node sweep's 5 nodes × 1 process 2.697 s. This is the best of the measured settings, not an exhaustive search.
-- **Processes beat nodes on one host.** One node × 8 processes (8 workers) is faster than 8 nodes × 1 process (3.523 s), because every extra node adds a container, an RPC client, and a Pyro5 daemon on the same 8 logical CPUs. The optimum of every sweep sits at 5 to 8 total processes (5 nodes, 8 on one node, 6 on two and three nodes), at or below the 8 logical CPUs, and the window rises past it.
-- **Past the optimum, contention dominates.** In the node sweep the window is lowest at 5 nodes (2.697 s, S = 2.94) and rises after. Efficiency falls steadily (E = 0.68 at 2 nodes, 0.22 at 10) because added nodes share CPUs rather than adding machines. These numbers bound the overhead of the design on a shared host, not the speedup separate machines would see.
-- **The ~2 s step was the master's request-loop poll, since fixed.** The tables above were measured before the fix; they show the window jumping by about 2 s in three places: node sweep 10 to 11 nodes (3.60 to 5.67 s), 2 nodes × 10 to 11 processes (3.29 to 5.05 s), and 3 nodes × 6 to 7 processes (3.15 to 5.12 s). Pyro5's threaded server re-checks the master's shutdown condition only when its `POLLTIMEOUT` select returns (2.0 s by default), and workers hold persistent connections, so nothing wakes it earlier. After the last result the master waits out the rest of the tick before it prints `Completed`. An isolated Pyro5 test reproduced the delay (up to 1.7 s at 2.0 s, at most 0.11 s at 0.1 s). A probe of 2 nodes × 10 to 12 processes with the master polling at 0.1 s cut the mean window at 11 processes from 5.01 to 3.44 s and at 12 processes from 5.11 to 4.05 s. Handoff overhead (median 5 ms) and OCR time were ruled out. The master now polls every 0.1 s (`MASTER_POLL_SECONDS`); about 0.3 s of tail remains, probably from `daemon.close()`. Not established: why 10 processes already sat below the full tick, and whether the 3-node and node-sweep steps share this cause (the probe covered 2 nodes only). One node × 11 to 16 processes showed no step. The measured optima lie well below this region.
-- **Not explained:** going from 1 to 2 nodes at 1 process per node gives only S = 1.35, while 2 to 3 nodes gives 1.57×.
-- **Dispersion:** stdev is under 0.2 s for every setting up to about 8 total processes and rises past it, up to 1.06 s at 12 nodes and 0.87 s at 13 nodes. All valid samples are kept.
-- **Total versus window:** totals include about 6.5 s of startup regardless of configuration; a total-only view would understate every speedup.
+- **Best measured configuration: 1 worker node × 8 processes**, a 2.088 s mean window (stdev 0.059 s), S = 3.56 against 1 process. The next best are 1 node × 9 processes (2.215 s), 2 nodes × 4 processes (2.172 s) and 3 nodes × 3 processes (2.398 s); the node sweep's best, 4 to 6 nodes × 1 process, is 2.67 to 2.69 s. This is the best of the measured settings, not an exhaustive search.
+- **Processes beat nodes on one host.** One node × 8 processes (8 workers) is faster than 8 nodes × 1 process (3.054 s). Additional nodes add containers, RPC clients, and Pyro5 daemons that share the same 8 logical CPUs; the measurements do not isolate their individual costs. The optimum of every sweep sits at 4 to 9 total processes (4 to 6 nodes, 8 on one node, 4 per node on two nodes, 3 per node on three nodes), at or just above the 8 logical CPUs, and the window rises past it.
+- **Past the optimum, the window rises.** In the node sweep the window is lowest at 4 to 6 nodes (2.67 to 2.69 s, S = 2.75 to 2.77, indistinguishable at five repetitions) and rises after. Efficiency falls steadily (E = 0.88 at 2 nodes, 0.21 at 10); added nodes share CPUs rather than adding machines. These numbers bound the overhead of the design on a shared host, not the speedup separate machines would see.
+- **The ~2 s step was the master's request-loop poll, fixed in `4dd29ad`.** An earlier sweep (commit `35f2cc9`) showed the window jumping by about 2 s at 10 to 11 nodes, at 2 nodes × 10 to 11 processes, and at 3 nodes × 6 to 7 processes. Pyro5's threaded server re-checks the master's shutdown condition only when its `POLLTIMEOUT` select returns (2.0 s by default), and workers hold persistent connections, so nothing wakes it earlier; after the last result the master waited out the rest of the tick before it printed `Completed`. An isolated Pyro5 test reproduced the delay (up to 1.7 s at 2.0 s, at most 0.11 s at 0.1 s), and a probe of 2 nodes × 10 to 12 processes with a 0.1 s poll cut the 11-process mean window from 5.01 to 3.44 s. Handoff overhead (median 5 ms) and OCR time were ruled out. The master now polls every 0.1 s (`MASTER_POLL_SECONDS`), and the tables above, measured after the fix, show no step larger than 0.5 s at any of those points: 10 to 11 nodes 3.56 to 3.95 s, 2 nodes × 10 to 11 processes 3.10 to 3.43 s, 3 nodes × 6 to 7 processes 3.05 to 3.47 s.
+- **Not explained:** the pre-fix window at 10 processes on 2 nodes already sat below the full 2 s tick, so the poll alone does not account for every earlier point; the fix removed the steps, so the question has no remaining effect on the tables.
+- **Dispersion:** stdev is under 0.12 s for every node-sweep setting and for 1 node up to 16 processes (at most 0.087 s). It is larger on 2 and 3 nodes past about 6 processes, up to 0.335 s at 2 nodes × 11 processes. All valid samples are kept.
+- **Total versus window:** totals include cluster startup and shutdown outside the window; these costs vary with configuration, so total-time speedups differ from window speedups.
 
 ## MP2 limits
 
 - One physical laptop: no network latency, no separate memory, and no hardware isolation between nodes. Conclusions about node count do not transfer to separate VMs.
 - 8 logical CPUs (4 physical cores with hyper-threading). Settings above 8 total processes oversubscribe the CPUs; the 16-process and 16-node ends measure contention, not capacity.
-- **Invalid samples (30 of 320):** the 3 nodes × 11 to 16 processes settings exceed the master's 32 active-process cap and were rejected by design. The first run of the node sweep lost samples at 13 to 16 nodes when Docker DNS failed a worker's first lookup (`Temporary failure in name resolution`) and the worker exited 1. Issue #38 added a bounded initial-connect retry, and nodes 11 to 16 were rerun with it (5 of 5 valid at every count); the tables use that rerun for 11 to 16 and the first run for 1 to 10, so those two ranges were measured in different sessions.
+- **Skipped by design:** 3 nodes × 11 to 16 processes exceed the master's 32 active-process cap, so they are not run. All 290 samples that ran are valid, in one session at one commit.
+- **Window definition:** the window ends at the master's `Completed` log line, so it includes `write_outputs()` and `daemon.close()` (the latter joins its pool threads). About 0.3 s of that tail remains after the poll fix; it is documented, not removed, and is not attributed to one cause.
 - No container CPU limits, so results reflect default Compose behaviour; CPU limits are a possible follow-up.
 - The `powersave` governor and thermal state were not controlled; interleaving spreads their effect across settings.
-- Five repetitions per setting; differences under about one standard deviation, such as 7 versus 8 processes on one node, are not distinguishable.
+- Five repetitions per setting; differences under about one standard deviation, such as the node sweep's 4, 5 and 6 nodes, are not distinguishable.
 - Cloud VMs will add network latency and real CPUs per node, so the cloud tables will be a separate dataset.
 
-Raw per-sample records are in the ignored `results/benchmark-v2-merged/summary.json` (v2 with the 11 to 16 node rerun from `results/benchmark-v3-nodes/summary.json`); every row of the tables above is derived from it.
+The dataset and model remain local course inputs; their hashes were not recorded for this run, limiting exact independent replication. The [summary and per-sample records](benchmark-cluster/benchmark-v4-summary.json) preserve the evidence used for the tables above.

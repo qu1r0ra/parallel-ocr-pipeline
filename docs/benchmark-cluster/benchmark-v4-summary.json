@@ -1,0 +1,4083 @@
+{
+  "host": "qu1r0ra-ideapad-ubuntu",
+  "commit": "4dd29ad852f5a77c84b777b81f5781fdd719d0af",
+  "docker": "Docker version 29.10.0, build fdd4b8e",
+  "cpu": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz",
+  "logical_cpus": 8,
+  "omp_thread_limit": 1,
+  "reps": 5,
+  "invalid_samples": 0,
+  "node_sweep": [
+    {
+      "nodes": 1,
+      "runs": 5,
+      "mean_s": 7.396,
+      "stdev_s": 0.096,
+      "min_s": 7.239,
+      "max_s": 7.502,
+      "speedup": 1.0,
+      "efficiency": 1.0
+    },
+    {
+      "nodes": 2,
+      "runs": 5,
+      "mean_s": 4.191,
+      "stdev_s": 0.085,
+      "min_s": 4.062,
+      "max_s": 4.268,
+      "speedup": 1.765,
+      "efficiency": 0.882
+    },
+    {
+      "nodes": 3,
+      "runs": 5,
+      "mean_s": 3.086,
+      "stdev_s": 0.018,
+      "min_s": 3.068,
+      "max_s": 3.109,
+      "speedup": 2.396,
+      "efficiency": 0.799
+    },
+    {
+      "nodes": 4,
+      "runs": 5,
+      "mean_s": 2.673,
+      "stdev_s": 0.089,
+      "min_s": 2.539,
+      "max_s": 2.766,
+      "speedup": 2.767,
+      "efficiency": 0.692
+    },
+    {
+      "nodes": 5,
+      "runs": 5,
+      "mean_s": 2.682,
+      "stdev_s": 0.093,
+      "min_s": 2.523,
+      "max_s": 2.759,
+      "speedup": 2.757,
+      "efficiency": 0.551
+    },
+    {
+      "nodes": 6,
+      "runs": 5,
+      "mean_s": 2.692,
+      "stdev_s": 0.104,
+      "min_s": 2.511,
+      "max_s": 2.764,
+      "speedup": 2.747,
+      "efficiency": 0.458
+    },
+    {
+      "nodes": 7,
+      "runs": 5,
+      "mean_s": 2.843,
+      "stdev_s": 0.067,
+      "min_s": 2.784,
+      "max_s": 2.942,
+      "speedup": 2.601,
+      "efficiency": 0.372
+    },
+    {
+      "nodes": 8,
+      "runs": 5,
+      "mean_s": 3.054,
+      "stdev_s": 0.08,
+      "min_s": 2.942,
+      "max_s": 3.134,
+      "speedup": 2.422,
+      "efficiency": 0.303
+    },
+    {
+      "nodes": 9,
+      "runs": 5,
+      "mean_s": 3.291,
+      "stdev_s": 0.084,
+      "min_s": 3.149,
+      "max_s": 3.366,
+      "speedup": 2.247,
+      "efficiency": 0.25
+    },
+    {
+      "nodes": 10,
+      "runs": 5,
+      "mean_s": 3.563,
+      "stdev_s": 0.057,
+      "min_s": 3.467,
+      "max_s": 3.614,
+      "speedup": 2.076,
+      "efficiency": 0.208
+    },
+    {
+      "nodes": 11,
+      "runs": 5,
+      "mean_s": 3.952,
+      "stdev_s": 0.117,
+      "min_s": 3.762,
+      "max_s": 4.075,
+      "speedup": 1.871,
+      "efficiency": 0.17
+    },
+    {
+      "nodes": 12,
+      "runs": 5,
+      "mean_s": 4.237,
+      "stdev_s": 0.078,
+      "min_s": 4.182,
+      "max_s": 4.359,
+      "speedup": 1.746,
+      "efficiency": 0.145
+    },
+    {
+      "nodes": 13,
+      "runs": 5,
+      "mean_s": 4.397,
+      "stdev_s": 0.114,
+      "min_s": 4.264,
+      "max_s": 4.532,
+      "speedup": 1.682,
+      "efficiency": 0.129
+    },
+    {
+      "nodes": 14,
+      "runs": 5,
+      "mean_s": 4.604,
+      "stdev_s": 0.068,
+      "min_s": 4.517,
+      "max_s": 4.687,
+      "speedup": 1.606,
+      "efficiency": 0.115
+    },
+    {
+      "nodes": 15,
+      "runs": 5,
+      "mean_s": 4.864,
+      "stdev_s": 0.119,
+      "min_s": 4.715,
+      "max_s": 5.022,
+      "speedup": 1.52,
+      "efficiency": 0.101
+    },
+    {
+      "nodes": 16,
+      "runs": 5,
+      "mean_s": 5.061,
+      "stdev_s": 0.06,
+      "min_s": 4.989,
+      "max_s": 5.143,
+      "speedup": 1.461,
+      "efficiency": 0.091
+    }
+  ],
+  "proc_sweeps": {
+    "1": [
+      {
+        "procs": 1,
+        "runs": 5,
+        "mean_s": 7.441,
+        "stdev_s": 0.052,
+        "min_s": 7.395,
+        "max_s": 7.509,
+        "speedup": 1.0,
+        "efficiency": 1.0
+      },
+      {
+        "procs": 2,
+        "runs": 5,
+        "mean_s": 4.19,
+        "stdev_s": 0.011,
+        "min_s": 4.174,
+        "max_s": 4.203,
+        "speedup": 1.776,
+        "efficiency": 0.888
+      },
+      {
+        "procs": 3,
+        "runs": 5,
+        "mean_s": 3.011,
+        "stdev_s": 0.001,
+        "min_s": 3.009,
+        "max_s": 3.012,
+        "speedup": 2.471,
+        "efficiency": 0.824
+      },
+      {
+        "procs": 4,
+        "runs": 5,
+        "mean_s": 2.486,
+        "stdev_s": 0.071,
+        "min_s": 2.381,
+        "max_s": 2.578,
+        "speedup": 2.993,
+        "efficiency": 0.748
+      },
+      {
+        "procs": 5,
+        "runs": 5,
+        "mean_s": 2.455,
+        "stdev_s": 0.041,
+        "min_s": 2.382,
+        "max_s": 2.478,
+        "speedup": 3.031,
+        "efficiency": 0.606
+      },
+      {
+        "procs": 6,
+        "runs": 5,
+        "mean_s": 2.4,
+        "stdev_s": 0.046,
+        "min_s": 2.377,
+        "max_s": 2.482,
+        "speedup": 3.101,
+        "efficiency": 0.517
+      },
+      {
+        "procs": 7,
+        "runs": 5,
+        "mean_s": 2.252,
+        "stdev_s": 0.046,
+        "min_s": 2.184,
+        "max_s": 2.289,
+        "speedup": 3.304,
+        "efficiency": 0.472
+      },
+      {
+        "procs": 8,
+        "runs": 5,
+        "mean_s": 2.088,
+        "stdev_s": 0.059,
+        "min_s": 2.036,
+        "max_s": 2.158,
+        "speedup": 3.563,
+        "efficiency": 0.445
+      },
+      {
+        "procs": 9,
+        "runs": 5,
+        "mean_s": 2.215,
+        "stdev_s": 0.044,
+        "min_s": 2.164,
+        "max_s": 2.275,
+        "speedup": 3.359,
+        "efficiency": 0.373
+      },
+      {
+        "procs": 10,
+        "runs": 5,
+        "mean_s": 2.267,
+        "stdev_s": 0.058,
+        "min_s": 2.185,
+        "max_s": 2.348,
+        "speedup": 3.282,
+        "efficiency": 0.328
+      },
+      {
+        "procs": 11,
+        "runs": 5,
+        "mean_s": 2.308,
+        "stdev_s": 0.086,
+        "min_s": 2.199,
+        "max_s": 2.424,
+        "speedup": 3.224,
+        "efficiency": 0.293
+      },
+      {
+        "procs": 12,
+        "runs": 5,
+        "mean_s": 2.506,
+        "stdev_s": 0.076,
+        "min_s": 2.41,
+        "max_s": 2.603,
+        "speedup": 2.969,
+        "efficiency": 0.247
+      },
+      {
+        "procs": 13,
+        "runs": 5,
+        "mean_s": 2.575,
+        "stdev_s": 0.072,
+        "min_s": 2.502,
+        "max_s": 2.677,
+        "speedup": 2.89,
+        "efficiency": 0.222
+      },
+      {
+        "procs": 14,
+        "runs": 5,
+        "mean_s": 2.646,
+        "stdev_s": 0.081,
+        "min_s": 2.528,
+        "max_s": 2.748,
+        "speedup": 2.813,
+        "efficiency": 0.201
+      },
+      {
+        "procs": 15,
+        "runs": 5,
+        "mean_s": 2.743,
+        "stdev_s": 0.087,
+        "min_s": 2.656,
+        "max_s": 2.87,
+        "speedup": 2.712,
+        "efficiency": 0.181
+      },
+      {
+        "procs": 16,
+        "runs": 5,
+        "mean_s": 2.784,
+        "stdev_s": 0.078,
+        "min_s": 2.655,
+        "max_s": 2.836,
+        "speedup": 2.673,
+        "efficiency": 0.167
+      }
+    ],
+    "2": [
+      {
+        "procs": 1,
+        "runs": 5,
+        "mean_s": 4.213,
+        "stdev_s": 0.052,
+        "min_s": 4.144,
+        "max_s": 4.259,
+        "speedup": 1.0,
+        "efficiency": 1.0
+      },
+      {
+        "procs": 2,
+        "runs": 5,
+        "mean_s": 2.538,
+        "stdev_s": 0.055,
+        "min_s": 2.469,
+        "max_s": 2.589,
+        "speedup": 1.66,
+        "efficiency": 0.83
+      },
+      {
+        "procs": 3,
+        "runs": 5,
+        "mean_s": 2.35,
+        "stdev_s": 0.013,
+        "min_s": 2.334,
+        "max_s": 2.365,
+        "speedup": 1.793,
+        "efficiency": 0.598
+      },
+      {
+        "procs": 4,
+        "runs": 5,
+        "mean_s": 2.172,
+        "stdev_s": 0.065,
+        "min_s": 2.118,
+        "max_s": 2.277,
+        "speedup": 1.94,
+        "efficiency": 0.485
+      },
+      {
+        "procs": 5,
+        "runs": 5,
+        "mean_s": 2.395,
+        "stdev_s": 0.078,
+        "min_s": 2.319,
+        "max_s": 2.524,
+        "speedup": 1.759,
+        "efficiency": 0.352
+      },
+      {
+        "procs": 6,
+        "runs": 5,
+        "mean_s": 2.531,
+        "stdev_s": 0.115,
+        "min_s": 2.355,
+        "max_s": 2.662,
+        "speedup": 1.664,
+        "efficiency": 0.277
+      },
+      {
+        "procs": 7,
+        "runs": 5,
+        "mean_s": 2.697,
+        "stdev_s": 0.093,
+        "min_s": 2.576,
+        "max_s": 2.826,
+        "speedup": 1.562,
+        "efficiency": 0.223
+      },
+      {
+        "procs": 8,
+        "runs": 5,
+        "mean_s": 2.948,
+        "stdev_s": 0.215,
+        "min_s": 2.691,
+        "max_s": 3.213,
+        "speedup": 1.429,
+        "efficiency": 0.179
+      },
+      {
+        "procs": 9,
+        "runs": 5,
+        "mean_s": 3.018,
+        "stdev_s": 0.09,
+        "min_s": 2.916,
+        "max_s": 3.109,
+        "speedup": 1.396,
+        "efficiency": 0.155
+      },
+      {
+        "procs": 10,
+        "runs": 5,
+        "mean_s": 3.101,
+        "stdev_s": 0.131,
+        "min_s": 2.925,
+        "max_s": 3.229,
+        "speedup": 1.359,
+        "efficiency": 0.136
+      },
+      {
+        "procs": 11,
+        "runs": 5,
+        "mean_s": 3.428,
+        "stdev_s": 0.335,
+        "min_s": 2.928,
+        "max_s": 3.778,
+        "speedup": 1.229,
+        "efficiency": 0.112
+      },
+      {
+        "procs": 12,
+        "runs": 5,
+        "mean_s": 3.571,
+        "stdev_s": 0.202,
+        "min_s": 3.379,
+        "max_s": 3.868,
+        "speedup": 1.18,
+        "efficiency": 0.098
+      },
+      {
+        "procs": 13,
+        "runs": 5,
+        "mean_s": 3.589,
+        "stdev_s": 0.332,
+        "min_s": 3.238,
+        "max_s": 4.057,
+        "speedup": 1.174,
+        "efficiency": 0.09
+      },
+      {
+        "procs": 14,
+        "runs": 5,
+        "mean_s": 3.822,
+        "stdev_s": 0.289,
+        "min_s": 3.487,
+        "max_s": 4.189,
+        "speedup": 1.102,
+        "efficiency": 0.079
+      },
+      {
+        "procs": 15,
+        "runs": 5,
+        "mean_s": 3.953,
+        "stdev_s": 0.318,
+        "min_s": 3.535,
+        "max_s": 4.266,
+        "speedup": 1.066,
+        "efficiency": 0.071
+      },
+      {
+        "procs": 16,
+        "runs": 5,
+        "mean_s": 4.316,
+        "stdev_s": 0.309,
+        "min_s": 3.986,
+        "max_s": 4.705,
+        "speedup": 0.976,
+        "efficiency": 0.061
+      }
+    ],
+    "3": [
+      {
+        "procs": 1,
+        "runs": 5,
+        "mean_s": 3.141,
+        "stdev_s": 0.071,
+        "min_s": 3.067,
+        "max_s": 3.224,
+        "speedup": 1.0,
+        "efficiency": 1.0
+      },
+      {
+        "procs": 2,
+        "runs": 5,
+        "mean_s": 2.481,
+        "stdev_s": 0.146,
+        "min_s": 2.295,
+        "max_s": 2.66,
+        "speedup": 1.266,
+        "efficiency": 0.633
+      },
+      {
+        "procs": 3,
+        "runs": 5,
+        "mean_s": 2.398,
+        "stdev_s": 0.031,
+        "min_s": 2.351,
+        "max_s": 2.437,
+        "speedup": 1.31,
+        "efficiency": 0.437
+      },
+      {
+        "procs": 4,
+        "runs": 5,
+        "mean_s": 2.604,
+        "stdev_s": 0.099,
+        "min_s": 2.442,
+        "max_s": 2.705,
+        "speedup": 1.206,
+        "efficiency": 0.302
+      },
+      {
+        "procs": 5,
+        "runs": 5,
+        "mean_s": 2.835,
+        "stdev_s": 0.183,
+        "min_s": 2.625,
+        "max_s": 3.112,
+        "speedup": 1.108,
+        "efficiency": 0.222
+      },
+      {
+        "procs": 6,
+        "runs": 5,
+        "mean_s": 3.048,
+        "stdev_s": 0.2,
+        "min_s": 2.8,
+        "max_s": 3.318,
+        "speedup": 1.031,
+        "efficiency": 0.172
+      },
+      {
+        "procs": 7,
+        "runs": 5,
+        "mean_s": 3.466,
+        "stdev_s": 0.25,
+        "min_s": 3.113,
+        "max_s": 3.714,
+        "speedup": 0.906,
+        "efficiency": 0.129
+      },
+      {
+        "procs": 8,
+        "runs": 5,
+        "mean_s": 3.668,
+        "stdev_s": 0.201,
+        "min_s": 3.494,
+        "max_s": 3.983,
+        "speedup": 0.856,
+        "efficiency": 0.107
+      },
+      {
+        "procs": 9,
+        "runs": 5,
+        "mean_s": 3.96,
+        "stdev_s": 0.286,
+        "min_s": 3.607,
+        "max_s": 4.334,
+        "speedup": 0.793,
+        "efficiency": 0.088
+      },
+      {
+        "procs": 10,
+        "runs": 5,
+        "mean_s": 3.891,
+        "stdev_s": 0.137,
+        "min_s": 3.657,
+        "max_s": 4.009,
+        "speedup": 0.807,
+        "efficiency": 0.081
+      }
+    ]
+  },
+  "node_sweep_procs_per_node": 1,
+  "samples": [
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 13.829,
+      "window_s": 7.239,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.743,
+      "window_s": 4.062,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.825,
+      "window_s": 3.086,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 4,
+      "procs": 1,
+      "total_s": 9.377,
+      "window_s": 2.539,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 5,
+      "procs": 1,
+      "total_s": 9.533,
+      "window_s": 2.523,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 6,
+      "procs": 1,
+      "total_s": 9.623,
+      "window_s": 2.511,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 7,
+      "procs": 1,
+      "total_s": 9.802,
+      "window_s": 2.784,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 8,
+      "procs": 1,
+      "total_s": 10.041,
+      "window_s": 2.942,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 9,
+      "procs": 1,
+      "total_s": 10.356,
+      "window_s": 3.149,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 10,
+      "procs": 1,
+      "total_s": 10.651,
+      "window_s": 3.467,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 11,
+      "procs": 1,
+      "total_s": 11.067,
+      "window_s": 3.762,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 12,
+      "procs": 1,
+      "total_s": 11.32,
+      "window_s": 4.271,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 13,
+      "procs": 1,
+      "total_s": 11.485,
+      "window_s": 4.334,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 14,
+      "procs": 1,
+      "total_s": 11.848,
+      "window_s": 4.58,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 15,
+      "procs": 1,
+      "total_s": 12.097,
+      "window_s": 4.715,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 16,
+      "procs": 1,
+      "total_s": 12.318,
+      "window_s": 5.064,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.049,
+      "window_s": 7.395,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 10.828,
+      "window_s": 4.174,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 9.648,
+      "window_s": 3.009,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 9.041,
+      "window_s": 2.381,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 9.056,
+      "window_s": 2.382,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 9.051,
+      "window_s": 2.377,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 8.94,
+      "window_s": 2.184,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 8.486,
+      "window_s": 2.038,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 9,
+      "total_s": 9.103,
+      "window_s": 2.164,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 10,
+      "total_s": 9.226,
+      "window_s": 2.261,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 11,
+      "total_s": 9.295,
+      "window_s": 2.199,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 12,
+      "total_s": 9.435,
+      "window_s": 2.468,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 13,
+      "total_s": 9.615,
+      "window_s": 2.544,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 14,
+      "total_s": 9.737,
+      "window_s": 2.652,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 15,
+      "total_s": 9.845,
+      "window_s": 2.705,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 16,
+      "total_s": 9.947,
+      "window_s": 2.836,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.84,
+      "window_s": 4.173,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 9.181,
+      "window_s": 2.469,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 9.158,
+      "window_s": 2.356,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 9.164,
+      "window_s": 2.19,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 9.37,
+      "window_s": 2.354,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 9.552,
+      "window_s": 2.355,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 9.889,
+      "window_s": 2.826,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 10.076,
+      "window_s": 2.771,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 9,
+      "total_s": 10.374,
+      "window_s": 3.035,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 10,
+      "total_s": 10.615,
+      "window_s": 3.016,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 11,
+      "total_s": 10.933,
+      "window_s": 3.676,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 12,
+      "total_s": 11.133,
+      "window_s": 3.868,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 13,
+      "total_s": 11.342,
+      "window_s": 3.749,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 14,
+      "total_s": 11.566,
+      "window_s": 3.953,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 15,
+      "total_s": 11.892,
+      "window_s": 3.752,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 16,
+      "total_s": 12.156,
+      "window_s": 4.705,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.879,
+      "window_s": 3.103,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 2,
+      "total_s": 9.292,
+      "window_s": 2.295,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 3,
+      "total_s": 9.374,
+      "window_s": 2.351,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 4,
+      "total_s": 9.741,
+      "window_s": 2.653,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 5,
+      "total_s": 10.346,
+      "window_s": 3.112,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 6,
+      "total_s": 10.544,
+      "window_s": 2.919,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 7,
+      "total_s": 11.003,
+      "window_s": 3.113,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 8,
+      "total_s": 11.304,
+      "window_s": 3.734,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 9,
+      "total_s": 11.683,
+      "window_s": 3.763,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 3,
+      "procs": 10,
+      "total_s": 11.97,
+      "window_s": 4.009,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.038,
+      "window_s": 7.403,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.841,
+      "window_s": 4.148,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.855,
+      "window_s": 3.099,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 4,
+      "procs": 1,
+      "total_s": 9.555,
+      "window_s": 2.722,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 5,
+      "procs": 1,
+      "total_s": 9.67,
+      "window_s": 2.687,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 6,
+      "procs": 1,
+      "total_s": 9.769,
+      "window_s": 2.696,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 7,
+      "procs": 1,
+      "total_s": 9.939,
+      "window_s": 2.786,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 8,
+      "procs": 1,
+      "total_s": 10.111,
+      "window_s": 2.999,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 9,
+      "procs": 1,
+      "total_s": 10.45,
+      "window_s": 3.289,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 10,
+      "procs": 1,
+      "total_s": 10.775,
+      "window_s": 3.594,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 11,
+      "procs": 1,
+      "total_s": 11.165,
+      "window_s": 3.949,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 12,
+      "procs": 1,
+      "total_s": 11.354,
+      "window_s": 4.182,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 13,
+      "procs": 1,
+      "total_s": 11.795,
+      "window_s": 4.532,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 14,
+      "procs": 1,
+      "total_s": 11.939,
+      "window_s": 4.58,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 15,
+      "procs": 1,
+      "total_s": 12.188,
+      "window_s": 4.827,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 16,
+      "procs": 1,
+      "total_s": 12.431,
+      "window_s": 5.089,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.057,
+      "window_s": 7.407,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 10.832,
+      "window_s": 4.194,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 9.644,
+      "window_s": 3.012,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 9.154,
+      "window_s": 2.499,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 9.115,
+      "window_s": 2.467,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 9.062,
+      "window_s": 2.379,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 9.095,
+      "window_s": 2.28,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 8.991,
+      "window_s": 2.036,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 9,
+      "total_s": 9.156,
+      "window_s": 2.191,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 10,
+      "total_s": 9.312,
+      "window_s": 2.276,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 11,
+      "total_s": 9.369,
+      "window_s": 2.301,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 12,
+      "total_s": 9.445,
+      "window_s": 2.494,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 13,
+      "total_s": 9.579,
+      "window_s": 2.622,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 14,
+      "total_s": 9.781,
+      "window_s": 2.528,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 15,
+      "total_s": 9.926,
+      "window_s": 2.656,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 16,
+      "total_s": 9.989,
+      "window_s": 2.831,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.834,
+      "window_s": 4.144,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 9.195,
+      "window_s": 2.488,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 9.187,
+      "window_s": 2.365,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 9.151,
+      "window_s": 2.126,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 9.334,
+      "window_s": 2.319,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 9.668,
+      "window_s": 2.53,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 9.828,
+      "window_s": 2.658,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 10.144,
+      "window_s": 2.996,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 9,
+      "total_s": 10.388,
+      "window_s": 3.098,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 10,
+      "total_s": 10.63,
+      "window_s": 2.925,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 11,
+      "total_s": 10.991,
+      "window_s": 3.308,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 12,
+      "total_s": 11.174,
+      "window_s": 3.379,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 13,
+      "total_s": 11.49,
+      "window_s": 3.238,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 14,
+      "total_s": 11.646,
+      "window_s": 4.189,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 15,
+      "total_s": 11.952,
+      "window_s": 4.256,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 16,
+      "total_s": 12.199,
+      "window_s": 4.392,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.888,
+      "window_s": 3.067,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 2,
+      "total_s": 9.315,
+      "window_s": 2.405,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 3,
+      "total_s": 9.417,
+      "window_s": 2.402,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 4,
+      "total_s": 9.795,
+      "window_s": 2.442,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 5,
+      "total_s": 10.125,
+      "window_s": 2.875,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 6,
+      "total_s": 10.54,
+      "window_s": 3.318,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 7,
+      "total_s": 10.968,
+      "window_s": 3.592,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 8,
+      "total_s": 11.311,
+      "window_s": 3.508,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 9,
+      "total_s": 11.777,
+      "window_s": 3.607,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 3,
+      "procs": 10,
+      "total_s": 12.087,
+      "window_s": 3.935,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.024,
+      "window_s": 7.425,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.949,
+      "window_s": 4.268,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.9,
+      "window_s": 3.07,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 4,
+      "procs": 1,
+      "total_s": 9.591,
+      "window_s": 2.708,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 5,
+      "procs": 1,
+      "total_s": 9.704,
+      "window_s": 2.733,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 6,
+      "procs": 1,
+      "total_s": 9.838,
+      "window_s": 2.752,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 7,
+      "procs": 1,
+      "total_s": 9.928,
+      "window_s": 2.829,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 8,
+      "procs": 1,
+      "total_s": 10.218,
+      "window_s": 3.134,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 9,
+      "procs": 1,
+      "total_s": 10.482,
+      "window_s": 3.319,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 10,
+      "procs": 1,
+      "total_s": 10.809,
+      "window_s": 3.574,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 11,
+      "procs": 1,
+      "total_s": 11.193,
+      "window_s": 3.96,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 12,
+      "procs": 1,
+      "total_s": 11.378,
+      "window_s": 4.188,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 13,
+      "procs": 1,
+      "total_s": 11.866,
+      "window_s": 4.354,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 14,
+      "procs": 1,
+      "total_s": 11.793,
+      "window_s": 4.517,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 15,
+      "procs": 1,
+      "total_s": 12.326,
+      "window_s": 4.94,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 16,
+      "procs": 1,
+      "total_s": 12.512,
+      "window_s": 5.019,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.153,
+      "window_s": 7.509,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 10.829,
+      "window_s": 4.186,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 9.673,
+      "window_s": 3.012,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 9.131,
+      "window_s": 2.476,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 9.136,
+      "window_s": 2.47,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 9.063,
+      "window_s": 2.384,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 9.075,
+      "window_s": 2.283,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 9.135,
+      "window_s": 2.158,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 9,
+      "total_s": 9.206,
+      "window_s": 2.242,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 10,
+      "total_s": 9.29,
+      "window_s": 2.267,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 11,
+      "total_s": 9.366,
+      "window_s": 2.264,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 12,
+      "total_s": 9.482,
+      "window_s": 2.41,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 13,
+      "total_s": 9.636,
+      "window_s": 2.53,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 14,
+      "total_s": 9.818,
+      "window_s": 2.748,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 15,
+      "total_s": 9.908,
+      "window_s": 2.692,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 16,
+      "total_s": 10.051,
+      "window_s": 2.831,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.939,
+      "window_s": 4.259,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 9.315,
+      "window_s": 2.589,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 9.171,
+      "window_s": 2.334,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 9.197,
+      "window_s": 2.148,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 9.386,
+      "window_s": 2.379,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 9.657,
+      "window_s": 2.513,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 9.953,
+      "window_s": 2.576,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 10.187,
+      "window_s": 2.691,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 9,
+      "total_s": 10.43,
+      "window_s": 3.109,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 10,
+      "total_s": 10.743,
+      "window_s": 3.229,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 11,
+      "total_s": 10.98,
+      "window_s": 2.928,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 12,
+      "total_s": 11.288,
+      "window_s": 3.402,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 13,
+      "total_s": 11.48,
+      "window_s": 3.321,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 14,
+      "total_s": 11.635,
+      "window_s": 3.571,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 15,
+      "total_s": 11.988,
+      "window_s": 3.956,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 16,
+      "total_s": 12.189,
+      "window_s": 3.986,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.884,
+      "window_s": 3.103,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 2,
+      "total_s": 9.45,
+      "window_s": 2.66,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 3,
+      "total_s": 9.471,
+      "window_s": 2.396,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 4,
+      "total_s": 9.812,
+      "window_s": 2.591,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 5,
+      "total_s": 10.114,
+      "window_s": 2.625,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 6,
+      "total_s": 10.604,
+      "window_s": 3.058,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 7,
+      "total_s": 10.979,
+      "window_s": 3.301,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 8,
+      "total_s": 11.396,
+      "window_s": 3.983,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 9,
+      "total_s": 11.714,
+      "window_s": 4.334,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 3,
+      "procs": 10,
+      "total_s": 12.039,
+      "window_s": 3.892,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.031,
+      "window_s": 7.409,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.947,
+      "window_s": 4.235,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.973,
+      "window_s": 3.109,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 4,
+      "procs": 1,
+      "total_s": 9.623,
+      "window_s": 2.766,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 5,
+      "procs": 1,
+      "total_s": 9.74,
+      "window_s": 2.708,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 6,
+      "procs": 1,
+      "total_s": 9.84,
+      "window_s": 2.736,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 7,
+      "procs": 1,
+      "total_s": 9.941,
+      "window_s": 2.875,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 8,
+      "procs": 1,
+      "total_s": 10.238,
+      "window_s": 3.104,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 9,
+      "procs": 1,
+      "total_s": 10.483,
+      "window_s": 3.366,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 10,
+      "procs": 1,
+      "total_s": 10.886,
+      "window_s": 3.614,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 11,
+      "procs": 1,
+      "total_s": 11.336,
+      "window_s": 4.075,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 12,
+      "procs": 1,
+      "total_s": 11.443,
+      "window_s": 4.183,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 13,
+      "procs": 1,
+      "total_s": 11.865,
+      "window_s": 4.5,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 14,
+      "procs": 1,
+      "total_s": 12.009,
+      "window_s": 4.658,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 15,
+      "procs": 1,
+      "total_s": 12.165,
+      "window_s": 4.818,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 16,
+      "procs": 1,
+      "total_s": 12.452,
+      "window_s": 4.989,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.033,
+      "window_s": 7.411,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 10.845,
+      "window_s": 4.203,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 9.666,
+      "window_s": 3.011,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 9.155,
+      "window_s": 2.498,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 9.16,
+      "window_s": 2.478,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 9.072,
+      "window_s": 2.377,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 9.081,
+      "window_s": 2.226,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 9.029,
+      "window_s": 2.066,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 9,
+      "total_s": 9.23,
+      "window_s": 2.205,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 10,
+      "total_s": 9.34,
+      "window_s": 2.348,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 11,
+      "total_s": 9.41,
+      "window_s": 2.424,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 12,
+      "total_s": 9.582,
+      "window_s": 2.603,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 13,
+      "total_s": 9.598,
+      "window_s": 2.502,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 14,
+      "total_s": 9.872,
+      "window_s": 2.681,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 15,
+      "total_s": 10.006,
+      "window_s": 2.794,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 16,
+      "total_s": 10.087,
+      "window_s": 2.655,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.941,
+      "window_s": 4.252,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 9.344,
+      "window_s": 2.576,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 9.181,
+      "window_s": 2.358,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 9.153,
+      "window_s": 2.118,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 9.387,
+      "window_s": 2.401,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 9.654,
+      "window_s": 2.597,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 9.977,
+      "window_s": 2.737,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 10.179,
+      "window_s": 3.069,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 9,
+      "total_s": 10.467,
+      "window_s": 2.933,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 10,
+      "total_s": 10.83,
+      "window_s": 3.218,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 11,
+      "total_s": 10.969,
+      "window_s": 3.778,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 12,
+      "total_s": 11.287,
+      "window_s": 3.541,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 13,
+      "total_s": 11.483,
+      "window_s": 4.057,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 14,
+      "total_s": 11.799,
+      "window_s": 3.487,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 15,
+      "total_s": 12.019,
+      "window_s": 3.535,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 16,
+      "total_s": 12.201,
+      "window_s": 4.017,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 10.028,
+      "window_s": 3.224,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 2,
+      "total_s": 9.385,
+      "window_s": 2.454,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 3,
+      "total_s": 9.428,
+      "window_s": 2.437,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 4,
+      "total_s": 9.864,
+      "window_s": 2.705,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 5,
+      "total_s": 10.224,
+      "window_s": 2.84,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 6,
+      "total_s": 10.59,
+      "window_s": 2.8,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 7,
+      "total_s": 11.077,
+      "window_s": 3.611,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 8,
+      "total_s": 11.412,
+      "window_s": 3.494,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 9,
+      "total_s": 11.828,
+      "window_s": 3.985,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 3,
+      "procs": 10,
+      "total_s": 12.13,
+      "window_s": 3.657,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.137,
+      "window_s": 7.502,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.95,
+      "window_s": 4.241,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 9.904,
+      "window_s": 3.068,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 4,
+      "procs": 1,
+      "total_s": 9.597,
+      "window_s": 2.631,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 5,
+      "procs": 1,
+      "total_s": 9.762,
+      "window_s": 2.759,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 6,
+      "procs": 1,
+      "total_s": 9.899,
+      "window_s": 2.764,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 7,
+      "procs": 1,
+      "total_s": 10.02,
+      "window_s": 2.942,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 8,
+      "procs": 1,
+      "total_s": 10.251,
+      "window_s": 3.09,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 9,
+      "procs": 1,
+      "total_s": 10.569,
+      "window_s": 3.33,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 10,
+      "procs": 1,
+      "total_s": 10.926,
+      "window_s": 3.567,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 11,
+      "procs": 1,
+      "total_s": 11.306,
+      "window_s": 4.013,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 12,
+      "procs": 1,
+      "total_s": 11.659,
+      "window_s": 4.359,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 13,
+      "procs": 1,
+      "total_s": 11.859,
+      "window_s": 4.264,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 14,
+      "procs": 1,
+      "total_s": 11.999,
+      "window_s": 4.687,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 15,
+      "procs": 1,
+      "total_s": 12.35,
+      "window_s": 5.022,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 16,
+      "procs": 1,
+      "total_s": 12.521,
+      "window_s": 5.143,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "nodes",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 14.141,
+      "window_s": 7.485,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 10.815,
+      "window_s": 4.191,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 9.694,
+      "window_s": 3.011,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 9.276,
+      "window_s": 2.578,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 9.19,
+      "window_s": 2.478,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 9.17,
+      "window_s": 2.482,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 9.088,
+      "window_s": 2.289,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 9.116,
+      "window_s": 2.144,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 9,
+      "total_s": 9.265,
+      "window_s": 2.275,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 10,
+      "total_s": 9.33,
+      "window_s": 2.185,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 11,
+      "total_s": 9.447,
+      "window_s": 2.352,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 12,
+      "total_s": 9.621,
+      "window_s": 2.557,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 13,
+      "total_s": 9.671,
+      "window_s": 2.677,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 14,
+      "total_s": 9.88,
+      "window_s": 2.619,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 15,
+      "total_s": 9.958,
+      "window_s": 2.87,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 16,
+      "total_s": 10.09,
+      "window_s": 2.765,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 10.934,
+      "window_s": 4.238,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 9.31,
+      "window_s": 2.568,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 9.216,
+      "window_s": 2.339,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 9.247,
+      "window_s": 2.277,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 9.426,
+      "window_s": 2.524,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 9.701,
+      "window_s": 2.662,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 9.93,
+      "window_s": 2.69,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 10.271,
+      "window_s": 3.213,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 9,
+      "total_s": 10.475,
+      "window_s": 2.916,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 10,
+      "total_s": 10.791,
+      "window_s": 3.116,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 11,
+      "total_s": 11.077,
+      "window_s": 3.448,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 12,
+      "total_s": 11.298,
+      "window_s": 3.665,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 13,
+      "total_s": 11.492,
+      "window_s": 3.58,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 14,
+      "total_s": 11.754,
+      "window_s": 3.912,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 15,
+      "total_s": 12.012,
+      "window_s": 4.266,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 16,
+      "total_s": 12.307,
+      "window_s": 4.482,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 1,
+      "total_s": 10.073,
+      "window_s": 3.21,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 2,
+      "total_s": 9.429,
+      "window_s": 2.59,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 3,
+      "total_s": 8.908,
+      "window_s": 2.405,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 4,
+      "total_s": 9.84,
+      "window_s": 2.628,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 5,
+      "total_s": 10.223,
+      "window_s": 2.725,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 6,
+      "total_s": 10.593,
+      "window_s": 3.143,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 7,
+      "total_s": 11.124,
+      "window_s": 3.714,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 8,
+      "total_s": 11.375,
+      "window_s": 3.622,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 9,
+      "total_s": 11.8,
+      "window_s": 4.112,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 3,
+      "procs": 10,
+      "total_s": 12.113,
+      "window_s": 3.961,
+      "valid": true,
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "sweep": "procs",
+      "rep": 5
+    }
+  ]
+}
