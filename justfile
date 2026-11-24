@@ -95,6 +95,10 @@ acceptance *args:
 benchmark-cluster *args:
     uv run --no-sync python scripts/benchmark_cluster.py {{args}}
 
+# Drive the native cloud cluster over SSH: deploy, check, sweep, fault (see docs/cloud-containers.md).
+benchmark-cloud *args:
+    uv run --no-sync python scripts/benchmark_cloud.py {{args}}
+
 # Render the cluster benchmark sweeps from a summary.json as SVG plots.
 plot-benchmark summary *args:
     uv run --no-sync python scripts/plot_benchmark.py "{{summary}}" {{args}}

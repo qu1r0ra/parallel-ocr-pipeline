@@ -79,7 +79,7 @@ The submission candidate CSV and its historical validation details remain docume
 
 # MP2 cluster benchmark (ticket #27)
 
-**Scope:** Local container evidence from one laptop. It shows how the Compose cluster behaves when every container shares the same 8 logical CPUs; it is **not** a multi-machine scaling measurement. The school-cloud VM data (one active worker VM versus two, and the processes-per-node sweeps on both) is a separate, later dataset and is never merged into these tables.
+**Scope:** Local container evidence from one laptop. It shows how the Compose cluster behaves when every container shares the same 8 logical CPUs; it is **not** a multi-machine scaling measurement. The school-cloud data (one active worker node versus two, and the processes-per-node sweeps on both) is a separate dataset, in the [cloud benchmark](#mp2-cloud-benchmark-ticket-44) below, and is never merged into these tables.
 
 ## MP2 benchmark method
 
@@ -217,6 +217,108 @@ The submission candidate CSV and its historical validation details remain docume
 - No container CPU limits, so results reflect default Compose behaviour; CPU limits are a possible follow-up.
 - The `powersave` governor and thermal state were not controlled; interleaving spreads their effect across settings.
 - Five repetitions per setting; differences under about one standard deviation, such as the node sweep's 4, 5 and 6 nodes, are not distinguishable.
-- Cloud VMs will add network latency and real CPUs per node, so the cloud tables will be a separate dataset.
+- The cloud containers add network latency and separate vCPUs per node; those are measured as their own dataset in the [cloud benchmark](#mp2-cloud-benchmark-ticket-44).
 
 The dataset and model remain local course inputs; their hashes were not recorded for this run, limiting exact independent replication. The [summary and per-sample records](benchmark-cluster/benchmark-v4-summary.json) preserve the evidence used for the tables above.
+
+# MP2 cloud benchmark (ticket #44)
+
+**Scope:** Three assigned school-cloud machines, each an unprivileged **LXC container** (2 vCPU, 4 GiB) on a shared Proxmox cluster: one master and up to two worker nodes, running native processes with no Docker. This is the multi-machine dataset: communication crosses a real network between separate containers. It is its own dataset and is never merged into the [local laptop tables](#mp2-cluster-benchmark-ticket-27).
+
+## Cloud benchmark method
+
+- Driver: `just benchmark-cloud` runs from the PC over SSH ([`scripts/benchmark_cloud.py`](../scripts/benchmark_cloud.py)). `deploy` ships `git archive HEAD` to each node; `check` prints the environment and refuses a sweep when the nodes differ; `sweep` and `fault` run the measurements. Nodes come from `--nodes` or `CLOUD_NODES`; endpoints and keys stay out of the repository.
+- Topology: server0 is the master (`just master`); server1 and server2 are worker nodes (`just worker`). One worker node means server2 sits idle.
+- **Sweep:** 1 to 8 processes per node (linear) on 1 and on 2 worker nodes. The master's active-process cap of 32 is far above every setting, so nothing was skipped.
+- **Repetitions:** 5 per setting, interleaved so drift reaches every setting. 80 samples ran and all 80 are valid (`invalid_samples` = 0).
+- **Validation:** a sample counts only if every exit status is 0, the CSV has exactly one row per image with unique filenames, the master logged exactly one assignment per image, and `evaluate-pipeline` passes (character accuracy 0.9964 in every sample).
+- **Timing:** the **window** (`window_s`) runs from the master's first `ASSIGN` to its `Completed` line, both stamped with the master's own clock as each line is written, so SSH latency never enters it. S and E use the window. **Total** (`total_s`) also includes SSH launch and polling round trips (about a second each) and is shown only for context.
+- Metrics: `S = T1 / Tn` and `E = S / n`, with `T` the mean window. In a process sweep, `T1` is the 1 process-per-node setting and `n` is processes per node, on the same node count. In the node comparison, `n` is worker nodes at 2 processes per node.
+- Each sample starts a fresh master and workers in its own run directory; the previous run's processes are killed first.
+
+## Cloud machine and software
+
+| Item | Value |
+|---|---|
+| Nodes | `csc611m-01-server0` (master), `-server1`, `-server2` (workers), on three different Proxmox hosts |
+| Container | Unprivileged LXC, Ubuntu 24.04, kernel 6.17.9-1-pve |
+| Resources | 2 vCPU and 4096 MiB each (read by `nproc` and `free` on every node) |
+| Tesseract / Python | 5.3.4 (apt) / 3.15.2 (`uv`) |
+| Commit | `1c21d45` for the sweep; `2a9dff8` for the fault run (only runner scripts differ; application code is identical) |
+| Dataset and model | 100 prepared images, `dataset_sha256` `48fd17e5…0c70541` (hash of per-file hashes); `eng.traineddata` sha256 `7d4322bd…70b2` on every node |
+| Network | Private lab network between the containers; communication only over Pyro5 |
+
+## Cloud results
+
+![Processes-per-node sweep on 1 worker node: processing window and speedup](benchmark-cloud/proc_sweep_1nodes.svg)
+
+### Processes-per-node sweep (1 worker node)
+
+| Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 7.172 | 0.055 | 7.111–7.212 | 1.000× | 1.000 | 9.00 |
+| 2 | 5 | 3.912 | 0.008 | 3.908–3.927 | 1.833× | 0.917 | 5.13 |
+| 3 | 5 | 4.050 | 0.007 | 4.043–4.061 | 1.771× | 0.590 | 6.14 |
+| 4 | 5 | 4.117 | 0.012 | 4.109–4.139 | 1.742× | 0.435 | 6.41 |
+| 5 | 5 | 4.272 | 0.030 | 4.240–4.310 | 1.679× | 0.336 | 6.42 |
+| 6 | 5 | 4.295 | 0.081 | 4.217–4.414 | 1.670× | 0.278 | 6.41 |
+| 7 | 5 | 4.377 | 0.027 | 4.360–4.425 | 1.639× | 0.234 | 6.40 |
+| 8 | 5 | 4.447 | 0.099 | 4.320–4.550 | 1.613× | 0.202 | 6.43 |
+
+![Processes-per-node sweep on 2 worker nodes: processing window and speedup](benchmark-cloud/proc_sweep_2nodes.svg)
+
+### Processes-per-node sweep (2 worker nodes)
+
+| Processes per node | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E | Total mean (s) |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 4.097 | 0.040 | 4.028–4.124 | 1.000× | 1.000 | 5.48 |
+| 2 | 5 | 2.327 | 0.032 | 2.282–2.371 | 1.760× | 0.880 | 4.21 |
+| 3 | 5 | 2.402 | 0.046 | 2.334–2.454 | 1.705× | 0.568 | 4.20 |
+| 4 | 5 | 2.430 | 0.013 | 2.409–2.445 | 1.686× | 0.421 | 4.18 |
+| 5 | 5 | 2.476 | 0.040 | 2.439–2.535 | 1.654× | 0.331 | 4.23 |
+| 6 | 5 | 2.540 | 0.037 | 2.481–2.574 | 1.613× | 0.269 | 4.15 |
+| 7 | 5 | 2.588 | 0.034 | 2.551–2.631 | 1.583× | 0.226 | 4.19 |
+| 8 | 5 | 2.674 | 0.080 | 2.556–2.773 | 1.532× | 0.191 | 4.20 |
+
+![Worker-node comparison at 2 processes per node: processing window and speedup](benchmark-cloud/node_sweep.svg)
+
+### Worker-node comparison (2 processes per node)
+
+| Worker nodes | Runs | Window mean (s) | Stdev (s) | Range (s) | Speedup S | Efficiency E |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 5 | 3.912 | 0.008 | 3.908–3.927 | 1.000× | 1.000 |
+| 2 | 5 | 2.327 | 0.032 | 2.282–2.371 | 1.681× | 0.841 |
+
+### Fault injection (hard-killed worker node)
+
+One run on 2 worker nodes at 1 process per node. Server2's worker and its spawn children were killed with `SIGKILL` 2.5 s after the node started, mid-run. Raw record: [`fault-summary.json`](benchmark-cloud/fault-summary.json).
+
+| Measure | Value |
+|---|---|
+| Expired assignment | `EXPIRE image_id=71 … node=csc611m-01-server2 … outcome=requeued` |
+| Assignments logged | 101 (100 images plus the one reassignment) |
+| Output | 100 rows, unique filenames, `evaluate-pipeline` character accuracy 0.9964 |
+| Window / total | 92.95 s / 94.92 s |
+
+The run is slower than a normal one because the master waits out the 90 s assignment deadline before it requeues the image the dead worker held; the surviving node kept processing the other images. The recorded demo shows the same event with a hard stop from the Proxmox UI, which this script-driven kill stands in for.
+
+## Cloud analysis
+
+- **Best measured configuration: 2 worker nodes × 2 processes per node**, a 2.327 s mean window (stdev 0.032 s). Against 1 node × 1 process (7.172 s) that is 3.08× faster with 4 worker processes on 4 vCPUs. This is the best of the measured settings, not an exhaustive search.
+- **The optimum is 2 processes per node, equal to the container's 2 vCPUs.** At 1 node, 2 processes reach S = 1.83 (E = 0.92); a third process makes the window longer. Past 2 the window rises slowly and steadily (about 0.1 s per extra process at 1 node, about 0.05 s at 2 nodes), because extra processes share the same two vCPUs and add RPC and scheduling overhead rather than capacity.
+- **Adding a second worker node scales sub-linearly but well.** At 2 processes per node, 1 → 2 nodes gives S = 1.68 and E = 0.84 (3.912 s → 2.327 s). Likely contributors are the single master serving every request and writing the outputs, and a fixed tail after the last result; the measurements do not isolate their individual costs.
+- **S is relative to 1 process per node, which leaves one of the two vCPUs idle.** The best S of 1.83 and 1.76 therefore sits just under the 2.0 that two vCPUs allow; it says little about the design's scaling beyond the vCPU count.
+- **Dispersion is small.** Stdev is at most 0.099 s across all 16 settings (0.2% of the mean at the 1-node optimum, 1.4% at the 2-node optimum), so the rankings at 1 to 2 processes per node are clear. The differences between 3 to 5 processes per node on 2 nodes (2.40 to 2.48 s) are within a few standard deviations of each other and should be read as a plateau.
+- **Cloud versus the laptop.** The laptop's best (1 node × 8 processes, 2.088 s) used 8 logical CPUs on one host; the cloud's best (2.327 s) uses 4 vCPUs across two containers and a real network. The datasets differ in hardware, so the two windows are shown side by side but not used to compute a speedup between them.
+
+## Cloud limits
+
+- **LXC containers, not virtual machines**, on Proxmox hosts shared with other tenants. Neighbour load and the host CPU model were not visible or controlled; interleaving spreads their effect across settings, and the small stdev suggests it was modest during this session.
+- 2 vCPU per node, so 1 to 8 processes per node oversubscribe the CPUs from the third process onward; the curve beyond 2 measures contention, not capacity.
+- Only 1 and 2 worker nodes: the third container is the master.
+- Five repetitions per setting in one session at one commit (`1c21d45`). The fault run used `2a9dff8`, which differs only in the runner's fault timer and cleanup; no application code changed.
+- One fault-injection run, with the kill scripted over SSH. It shows reassignment works across containers; it does not measure recovery variance.
+- The window includes the same master-side tail as the local dataset (`write_outputs()` and `daemon.close()`).
+- Timings come from the master's logs. The PC-to-container SSH path only launches and observes runs.
+
+The [sweep summary](benchmark-cloud/sweep-summary.json) and [fault summary](benchmark-cloud/fault-summary.json) preserve the per-sample evidence, including the environment of each node. Reproduce with `just benchmark-cloud deploy`, `check`, then `sweep` and `fault` (see `just benchmark-cloud --help`), then `just plot-benchmark <summary.json> --out <dir>`.
