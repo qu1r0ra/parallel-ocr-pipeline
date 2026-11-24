@@ -16,6 +16,10 @@ Use the live parent and child issues for implementation state and dependencies. 
 
 Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud runs follow [cloud containers](../cloud-containers.md).
 
+## Freeze
+
+The code is frozen at the evidence commit named in the [team handoff](../team-handoff.md). Land tests and docs; hold `src/` and `scripts/` changes unless a defect is found. A defect fix moves the freeze: re-run the affected runs, update the evidence, and name the new commit in the handoff.
+
 ## Container host
 
 The owner's Windows PC cannot start Docker Desktop (no virtualization), so every Docker or Compose workflow, including the #26 acceptance and stopped-worker demonstration, runs on the Ubuntu IdeaPad, linked as T3 environment `qu1r0ra-ideapad-ubuntu` (pass its `environmentId` to T3 tools).

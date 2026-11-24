@@ -28,8 +28,9 @@ Issues #23 to #26 are done; their live state is on GitHub. Evidence: stopped-wor
 
 ### Remaining #27 work
 
-- **Cloud runs (measured; demo recording open):** the cloud topology is 3 LXC containers (1 master, 2 workers), its own dataset; operate it with [cloud containers](cloud-containers.md) (`just benchmark-cloud`). Left: record the hard-stop recovery demo, and copy results and the recording off the containers before 2026-12-20.
-- **Deck (open):** author and ownership are undecided. Sections needed: overview, distribution, synchronization, recovery evidence ([cluster acceptance](cluster-acceptance.md)), and benchmarking.
-- **Submission (human action):** commit everything, then run `just package-submission --csv <output.csv> --deck <deck.pptx>`. It builds the source-only ZIP from `HEAD`, rejects environments, secrets, course inputs, models, and run outputs, scores the CSV, and requires the deck. The handout asks for ZIP, CSV, and PPT only; no video.
+- **Code freeze:** `main` at `6575099` is the evidence commit; the cloud sweep, fault runs, and recorded demo ran on this code. Land only tests and docs. A change to `src/` or `scripts/` voids that evidence: re-run the affected runs and re-record before the deadline.
+- **Cloud runs (done):** 3 LXC containers (1 master, 2 workers), its own dataset; operate it with [cloud containers](cloud-containers.md) (`just benchmark-cloud`). The fault demo is recorded (hard-stop of one worker, master requeues its image after the 90 s deadline) and results and recording are copied off the containers to the owner's PC; the containers expire 2026-12-20.
+- **Deck (assigned to the owner's groupmate):** the deck is the presentation, presented live with the demo clip embedded. The owner supplies a trimmed clip, chart PNGs, and a numbers README through the shared Drive folder. Sections needed: overview, distribution, synchronization, recovery evidence ([cluster acceptance](cluster-acceptance.md)), and benchmarking.
+- **Submission (human action):** commit everything, then run `just package-submission --csv <output.csv> --deck <deck.pptx>`. Submit a cloud 2 nodes × 2 processes run CSV (100 rows, accuracy 0.9964). It builds the source-only ZIP from `HEAD`, rejects environments, secrets, course inputs, models, and run outputs, scores the CSV, and requires the deck. The handout asks for ZIP, CSV, and PPT only; no video.
 
 Use the [MP2 development guide](agents/mp2-development.md) for contributor entry points and the live issues for current status.
