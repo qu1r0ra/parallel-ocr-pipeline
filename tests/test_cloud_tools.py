@@ -118,6 +118,15 @@ def test_worker_script_points_at_the_master_with_the_process_count() -> None:
     assert "/root/run/r1/worker.exit" in script
 
 
+def test_worker_script_arms_a_local_kill_timer_only_for_the_fault_node() -> None:
+    plain = benchmark_cloud.worker_script("/root/run/r1", "10.0.0.1", 1)
+    armed = benchmark_cloud.worker_script("/root/run/r1", "10.0.0.1", 1, kill_after_s=2.5)
+    assert "pkill -9" not in plain
+    assert "sleep 2.5" in armed
+    assert "pkill -9" in armed
+    assert "run_worke[r]" in armed  # the timer must not match its own command line
+
+
 def environment(**overrides: str) -> dict[str, dict[str, str]]:
     node = {
         "commit": "abc",

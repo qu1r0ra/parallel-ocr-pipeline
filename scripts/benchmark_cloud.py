@@ -41,7 +41,9 @@ IMAGE_DIR = f"{REMOTE_ROOT}/local-assets/dataset/images"
 MASTER_TIMEOUT_S = 600
 WORKER_EXIT_TIMEOUT_S = 90
 READY_TIMEOUT_S = 60
-FAULT_TRIGGER_ASSIGNS = 20
+FAULT_KILL_DELAY_S = (
+    2.5  # after the worker node starts: past start-up, well before a 1-process run ends
+)
 LOG_LINE = re.compile(r"^(\d+\.\d+) (.*)$")
 
 
@@ -142,8 +144,19 @@ do printf "%s %s\\n" "$EPOCHREALTIME" "$l"; done > {run}/master.log' \
 """
 
 
-def worker_script(run: str, master_ip: str, procs: int) -> str:
-    """Shell script that starts one worker node with ``procs`` processes, detached."""
+def worker_script(run: str, master_ip: str, procs: int, kill_after_s: float | None = None) -> str:
+    """Shell script that starts one worker node with ``procs`` processes, detached.
+
+    With ``kill_after_s`` the node also arms a local timer that hard-kills its worker, so the
+    fault lands mid-run instead of racing SSH round trips (a whole run lasts only seconds).
+    """
+    timer = ""
+    if kill_after_s is not None:
+        # The [r] keeps the timer's own command line from matching its pkill pattern.
+        timer = (
+            f"setsid nohup bash -c 'sleep {kill_after_s}; "
+            f'pkill -9 -f "scripts/run_worke[r]\\.py"\' >/dev/null 2>&1 < /dev/null &\n'
+        )
     return f"""set -e
 {UV_PATH}
 pkill -f 'scripts/run_(master|worker)\\.py' || true
@@ -153,7 +166,7 @@ printf 'master_host={master_ip}\\nmaster_port={MASTER_PORT}\\nn_workers={procs}\
 cd {REMOTE_ROOT}
 setsid nohup bash -c '( uv run --no-sync python -u scripts/run_worker.py {run}/worker_config.txt \
 > {run}/worker.log 2>&1; echo $? > {run}/worker.exit )' >/dev/null 2>&1 < /dev/null &
-"""
+{timer}"""
 
 
 class Cluster:
@@ -273,18 +286,9 @@ def run_sample(
         stop_all(cluster)
         return {"nodes": nodes, "procs": procs, "valid": False, "error": "master not ready"}
     for node in active:
-        cluster.ssh(node, worker_script(run, cluster.master_ip, procs))
-    killed = False
-    if fault_node is not None:
-        reached = cluster.wait_for(
-            cluster.master,
-            f"[ $(grep -c ' ASSIGN ' {run}/master.log) -ge {FAULT_TRIGGER_ASSIGNS} ]",
-            MASTER_TIMEOUT_S,
-            interval=0.5,
-        )
-        if reached:
-            cluster.ssh(fault_node, "pkill -9 -f 'scripts/run_worker\\.py' || true", check=False)
-            killed = True
+        delay = FAULT_KILL_DELAY_S if node is fault_node else None
+        cluster.ssh(node, worker_script(run, cluster.master_ip, procs, kill_after_s=delay))
+    killed = fault_node is not None
     finished = cluster.wait_for(cluster.master, f"test -s {run}/master.exit", MASTER_TIMEOUT_S)
     total = time.monotonic() - started
     for node in active:
@@ -496,7 +500,7 @@ def main() -> int:
     sweep.add_argument("--node-procs", type=int, default=2, help="processes/node, node pair")
     sweep.add_argument("--reps", type=int, default=5)
     fault = commands.add_parser("fault", help="kill one worker node mid-run; expect reassignment")
-    fault.add_argument("--procs", type=int, default=2)
+    fault.add_argument("--procs", type=int, default=1)
     args = parser.parse_args()
     if not args.nodes:
         raise SystemExit("pass --nodes host:port,host:port,host:port or set CLOUD_NODES")
