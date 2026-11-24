@@ -152,10 +152,13 @@ def worker_script(run: str, master_ip: str, procs: int, kill_after_s: float | No
     """
     timer = ""
     if kill_after_s is not None:
-        # The [r] keeps the timer's own command line from matching its pkill pattern.
+        # Process children are multiprocessing spawn children whose command lines omit
+        # run_worker.py, so the pattern names both. The [r] and [g] brackets keep the timer's
+        # own command line from matching its pkill pattern.
         timer = (
             f"setsid nohup bash -c 'sleep {kill_after_s}; "
-            f'pkill -9 -f "scripts/run_worke[r]\\.py"\' >/dev/null 2>&1 < /dev/null &\n'
+            f'pkill -9 -f "scripts/run_worke[r]\\.py|multiprocessin[g]\\.(spawn|resource_tracker)"\''
+            " >/dev/null 2>&1 < /dev/null &\n"
         )
     return f"""set -e
 {UV_PATH}
@@ -262,7 +265,12 @@ def read_csv_rows(text: str) -> list[dict[str, str]]:
 
 def stop_all(cluster: Cluster) -> None:
     for node in cluster.nodes:
-        cluster.ssh(node, "pkill -f 'scripts/run_(master|worker)\\.py' || true", check=False)
+        cluster.ssh(
+            node,
+            "pkill -f 'scripts/run_(master|worker)\\.py|multiprocessing\\.(spawn|resource_tracker)'"
+            " || true",
+            check=False,
+        )
 
 
 def run_sample(

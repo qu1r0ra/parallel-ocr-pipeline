@@ -125,6 +125,7 @@ def test_worker_script_arms_a_local_kill_timer_only_for_the_fault_node() -> None
     assert "sleep 2.5" in armed
     assert "pkill -9" in armed
     assert "run_worke[r]" in armed  # the timer must not match its own command line
+    assert "multiprocessin[g]" in armed  # spawn children omit run_worker.py
 
 
 def environment(**overrides: str) -> dict[str, dict[str, str]]:
