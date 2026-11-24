@@ -76,7 +76,9 @@ Provisioned identically on all three on 2026-11-24; `deploy` refreshes the code,
 | Dataset | server0 only, `/root/ocr/local-assets/dataset/images` (100 images, `dataset_sha256` `48fd17e5…0c70541`, hash-matched to the owner's copy) |
 | Runs | per-run directory `/root/run/<id>/`; the master writes its CSV beside its config file |
 
-## Remaining cloud work
+## Cloud work status
 
-- **Recorded demo** (`record-with-obs`): hard-stop a worker container from the Proxmox UI while the master processes, show the master reassign its images, then restart the container. `just benchmark-cloud fault` rehearses it and is the fallback; the IdeaPad `just acceptance` run is the live backup.
-- **Copy results and the recording off the containers before 2026-12-20.**
+Done: the sweep, the fault runs, the recorded demo, and the copy of `/root/run` off the containers. Nothing remains except the 2026-12-20 expiry.
+
+- **Demo recipe** (reuse only if the recording must be redone): `just benchmark-cloud` has no 1500-image mode, so a recording-length run needs a larger image set on server0 (about 1500 images runs about 60 s on 2 nodes × 1 process). Hard-stop one worker container from the Proxmox UI (Stop, not Shutdown) 10–20 s into the run; the master logs `EXPIRE … outcome=requeued` about 90 s later. A browser video captures only browser pages, so show the master log in the CT's in-page Console. Restart the container afterwards.
+- **Fallbacks:** `just benchmark-cloud fault` rehearses the same failure; the IdeaPad `just acceptance` run is the live backup.
