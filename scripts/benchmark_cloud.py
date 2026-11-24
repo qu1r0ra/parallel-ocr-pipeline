@@ -188,10 +188,21 @@ class Cluster:
             f"root@{node.host}",
             "bash -s",
         ]
+        # Send bytes: text mode adds CRLF on Windows and bash would see a trailing CR.
         result = subprocess.CompletedProcess(command, 255, "", "")
         for _ in range(3):
-            result = subprocess.run(
-                command, input=script, capture_output=True, text=True, timeout=timeout, check=False
+            raw = subprocess.run(
+                command,
+                input=script.encode("utf-8"),
+                capture_output=True,
+                timeout=timeout,
+                check=False,
+            )
+            result = subprocess.CompletedProcess(
+                command,
+                raw.returncode,
+                raw.stdout.decode("utf-8", errors="replace"),
+                raw.stderr.decode("utf-8", errors="replace"),
             )
             if result.returncode != 255:
                 break
