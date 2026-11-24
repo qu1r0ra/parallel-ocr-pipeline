@@ -14,7 +14,7 @@ Reuse the image-to-text recognition boundary, recognition evaluation, determinis
 
 Use the live parent and child issues for implementation state and dependencies. Distinguish the successful local container run from integrated recovery and cloud evidence. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
 
-Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud provisioning remains deferred as recorded in the spec.
+Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud runs follow [cloud containers](../cloud-containers.md).
 
 ## Container host
 
@@ -31,8 +31,8 @@ Completion: container evidence records the laptop's hostname and the commit SHA 
 Two datasets answer different questions; report each in its own table in [benchmark results](../benchmark-results.md) and never merge them.
 
 - **Local container** (IdeaPad; every container shares 8 logical CPUs): node counts 1 to 16 at 1 process per node, and process counts 1 to 16 at 1 and 2 worker nodes, 1 to 10 at 3. It measures design overhead and contention, not multi-machine scaling.
-- **Cloud** (3 VMs: 1 master, 2 workers): node scaling is one matched pair, 1 active worker (the other VM idle) against 2. Process sweeps run at both. Node count cannot exceed 2, so the process sweeps carry most of this dataset.
+- **Cloud** (3 LXC containers, native processes, no Docker: 1 master, 2 workers; read [cloud containers](../cloud-containers.md) before using them): node scaling is one matched pair, 1 active worker (the other container idle) against 2. Process sweeps run linearly from 1 to 8 per node at both, past the 2-vCPU limit to show saturation. Node count cannot exceed 2, so the process sweeps carry most of this dataset.
 
 The runner skips settings where `nodes × procs` exceeds the master's active-process cap and logs each skip; it does not run them ([RPC contract](../pyro5-rpc-contract.md) has the cap). A failed sample is invalid and stays in `invalid_samples`. Worker startup behavior is in the [RPC contract](../pyro5-rpc-contract.md).
 
-Run the local dataset with `just benchmark-cluster` on the container host. The cloud dataset needs a remote driver first ([#44](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/44)). Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.
+Run the local dataset with `just benchmark-cluster` on the container host. Run the cloud dataset with `just benchmark-cloud` (usage and gotchas: [cloud containers](../cloud-containers.md#run-the-cloud-benchmark)); it starts the master and workers natively over SSH and leaves the Compose runner untouched. Cloud results sit in their own section of [benchmark results](../benchmark-results.md#mp2-cloud-benchmark-ticket-44). Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.
