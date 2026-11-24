@@ -561,6 +561,72 @@ def test_expired_assignment_is_reassigned_and_old_request_and_result_are_rejecte
     ]
 
 
+def test_dead_node_holding_several_images_loses_all_of_them_and_csv_has_each_id_once(
+    tmp_path: Path,
+) -> None:
+    images = tmp_path / "images"
+    images.mkdir()
+    names = [f"img{i}.png" for i in range(1, 5)]
+    for name in names:
+        _write_image(images / name)
+    master, port, _ = _start_fast_master(tmp_path, images)
+    proxy = Proxy(f"PYRO:{MASTER_OBJECT_ID}@127.0.0.1:{port}")
+    proxy._pyroTimeout = 5
+
+    try:
+        _wait_for_server(master, port)
+        dead = [_rpc(proxy, "get_work", "dead-node", f"process-{n}", f"dead-{n}") for n in (1, 2)]
+        assert [item["status"] for item in dead] == ["work", "work"]
+
+        time.sleep(0.3)  # both assignments pass the 0.2 s deadline; the node never reports back
+
+        served: list[dict[str, Any]] = []
+        for n in range(1, 8):
+            item = _rpc(proxy, "get_work", "live-node", "process-9", f"live-{n}")
+            if item["status"] != "work":
+                break
+            served.append(item)
+            _rpc(
+                proxy,
+                "submit_result",
+                "live-node",
+                "process-9",
+                f"live-{n}",
+                item["attempt_token"],
+                {
+                    "status": "success",
+                    "text": f"text-{item['image_id']}",
+                    "processing_time_ms": 1.0,
+                },
+            )
+        assert sorted(item["image_id"] for item in served) == [1, 2, 3, 4]
+
+        for n, item in enumerate(dead, start=1):
+            late = _rpc(
+                proxy,
+                "submit_result",
+                "dead-node",
+                f"process-{n}",
+                f"dead-{n}",
+                item["attempt_token"],
+                {"status": "success", "text": "stale", "processing_time_ms": 1.0},
+            )
+            assert late["status"] == "rejected"
+        status, _, stderr = _finish_master(master)
+    finally:
+        proxy._pyroRelease()
+        if master.poll() is None:
+            master.kill()
+            master.communicate()
+
+    assert status == 0, stderr
+    with (tmp_path / "ocr_results.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [(row["image_id"], row["filename"], row["text"]) for row in rows] == [
+        (str(i), names[i - 1], f"text-{i}") for i in range(1, 5)
+    ]
+
+
 def test_stopped_worker_process_is_reassigned_to_a_live_worker(tmp_path: Path) -> None:
     images = tmp_path / "images"
     images.mkdir()
