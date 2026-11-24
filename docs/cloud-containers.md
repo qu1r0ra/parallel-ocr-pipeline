@@ -19,7 +19,7 @@ Read this before touching them. Account names, passwords, and public SSH endpoin
 
 ## Constraints that shape the design
 
-- **Run native processes; Docker is out.** No Docker is installed, and an unprivileged LXC cannot host it without nesting the owner cannot enable. The cloud driver starts `just master` and `just worker` directly, over SSH.
+- **Run native processes; Docker is out.** No Docker is installed, and an unprivileged LXC cannot host it without nesting the owner cannot enable. The cloud driver ([`scripts/benchmark_cloud.py`](../scripts/benchmark_cloud.py)) starts `just master` and `just worker` directly, over SSH.
 - **Root is available.** Every account is root. `apt` works (verified on server2: package lists fetched; `tesseract-ocr` 5.3.4, `git`, `curl` are candidates). GitHub and PyPI are reachable. Python `urllib` gets 403 from `astral.sh`, but `curl -fsSL https://astral.sh/uv/install.sh | sh` works.
 - **The Ubuntu Tesseract version differs from the Docker image's and the laptop's.** Record it in every cloud summary; it can move OCR output.
 - **Expiry: the containers are tagged `exp-20261220`.** Copy cloud results and the demo recording off them well before 2026-12-20.
@@ -36,19 +36,47 @@ Browser automation gotchas: the site has a self-signed certificate (start `playw
 
 Completion: `hostname` over the chosen route returns the intended `csc611m-01-serverN` name.
 
+## Run the cloud benchmark
+
+`just benchmark-cloud <subcommand>` runs from the owner's PC. Give it the three endpoints, master first, as `--nodes host:port,host:port,host:port` or the `CLOUD_NODES` environment variable (workbook values; keep them out of Git), and the key with `--key` (default `~/.ssh/csc611m_cloud`).
+
+| Subcommand | Does |
+| --- | --- |
+| `deploy` | ships `git archive HEAD` to every node and syncs dependencies; the dataset and model stay where they are |
+| `check` | prints each node's commit, model hash, Tesseract, Python, vCPUs, and memory; exits non-zero when nodes differ, and `sweep` refuses to start in that state |
+| `sweep` | the 1 to 8 process sweep at 1 and 2 worker nodes, 5 interleaved reps; narrow it with `--node-counts`, `--proc-counts`, `--reps` |
+| `fault` | one run that hard-kills server2's worker mid-run and reports whether the master requeued its image |
+
+Redeploy after every code change, then `check`; the commit in `/root/ocr/COMMIT` must equal the commit you report. Plot with `just plot-benchmark <summary.json> --out <dir>`. Results and method: [cloud benchmark](benchmark-results.md#mp2-cloud-benchmark-ticket-44); raw data: [`benchmark-cloud/`](benchmark-cloud/).
+
+Completion: `check` exits 0, and a finished sweep's summary has `invalid_samples` = 0.
+
+## Gotchas
+
+- **Fault timing.** An SSH round trip takes about a second and a run takes 2 to 4 s, so a kill sent over SSH lands after the run. The fault node arms a node-local `sleep; pkill -9` timer when it starts (`FAULT_KILL_DELAY_S`).
+- **Kill pattern.** `multiprocessing` spawn children omit `run_worker.py` from their command line, so the kill matches `multiprocessing.spawn` and `resource_tracker` too; a kill on `run_worker.py` alone leaves orphans that keep working.
+- **Recovery takes about 100 s**, because the master waits out the 90 s assignment deadline before it requeues. The recording needs that long.
+- **Timing source.** The window runs from the master's first `ASSIGN` to its `Completed` line, both stamped with `$EPOCHREALTIME` on the master, so SSH latency stays out of it.
+- **Windows client.** Send scripts to `bash -s` as bytes: text-mode stdin turns LF into CRLF and bash then sees a trailing CR. Git Bash `tar` needs `--force-local`, extraction on Linux needs `--no-same-owner`, and Git Bash `sha256sum` prefixes `*` to filenames.
+- **Non-interactive SSH has no `uv`.** Put `/root/.local/bin` on `PATH` in every remote script.
+- **`ruff format` hook.** It can reformat and fail a commit; rerun `just verify`, then commit again.
+
 ## State of provisioning
 
-Provisioned identically on all three on 2026-11-24 from commit `381820a` (`main`); reprovision only if a row below no longer holds.
+Provisioned identically on all three on 2026-11-24; `deploy` refreshes the code, and the other rows hold until a node is rebuilt.
 
 | Item | State |
 | --- | --- |
 | SSH | dedicated ed25519 key `csc611m-cloud-bench` in `/root/.ssh/authorized_keys`; the private key stays on the owner's PC |
 | Packages | `apt install tesseract-ocr tesseract-ocr-eng curl`; Tesseract **5.3.4** |
-| `uv` | 0.13.9 in `/root/.local/bin` (add it to `PATH` in non-interactive SSH) |
+| `uv` | 0.13.9 in `/root/.local/bin` |
 | Python | 3.15.2, fetched by `uv sync --locked --no-dev` |
 | Code | `git archive` tarball extracted to `/root/ocr`; the commit SHA is in `/root/ocr/COMMIT` (no Git or GitHub token on the containers) |
 | Model | `/root/ocr/local-assets/models/eng.traineddata`, SHA-256 `7d4322bd…70b2` (identical on all three) |
-| Dataset | server0 only, `/root/ocr/local-assets/dataset/images` (100 images, hash-matched to the owner's copy) |
+| Dataset | server0 only, `/root/ocr/local-assets/dataset/images` (100 images, `dataset_sha256` `48fd17e5…0c70541`, hash-matched to the owner's copy) |
 | Runs | per-run directory `/root/run/<id>/`; the master writes its CSV beside its config file |
 
-Smoke run (server0 master, server1 worker node, 2 processes, no Docker): 100 images in about 4.4 s end to end; 97 exact matches, character accuracy 0.9964 (`evaluate-pipeline`).
+## Remaining cloud work
+
+- **Recorded demo** (`record-with-obs`): hard-stop a worker container from the Proxmox UI while the master processes, show the master reassign its images, then restart the container. `just benchmark-cloud fault` rehearses it and is the fallback; the IdeaPad `just acceptance` run is the live backup.
+- **Copy results and the recording off the containers before 2026-12-20.**

@@ -14,7 +14,7 @@ Reuse the image-to-text recognition boundary, recognition evaluation, determinis
 
 Use the live parent and child issues for implementation state and dependencies. Distinguish the successful local container run from integrated recovery and cloud evidence. Discover executable commands from the current task definitions; add operator instructions with the implementation that makes them work.
 
-Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud provisioning remains deferred as recorded in the spec.
+Use the [team handoff](../team-handoff.md) for phase context. Benchmark datasets and ranges follow [Benchmark evidence](#benchmark-evidence); cloud runs follow [cloud containers](../cloud-containers.md).
 
 ## Container host
 
@@ -35,4 +35,4 @@ Two datasets answer different questions; report each in its own table in [benchm
 
 The runner skips settings where `nodes × procs` exceeds the master's active-process cap and logs each skip; it does not run them ([RPC contract](../pyro5-rpc-contract.md) has the cap). A failed sample is invalid and stays in `invalid_samples`. Worker startup behavior is in the [RPC contract](../pyro5-rpc-contract.md).
 
-Run the local dataset with `just benchmark-cluster` on the container host. The cloud dataset needs a remote driver first ([#44](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/44)); it starts the master and workers natively over SSH and keeps the Compose runner untouched. Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.
+Run the local dataset with `just benchmark-cluster` on the container host. Run the cloud dataset with `just benchmark-cloud` (usage and gotchas: [cloud containers](../cloud-containers.md#run-the-cloud-benchmark)); it starts the master and workers natively over SSH and leaves the Compose runner untouched. Cloud results sit in their own section of [benchmark results](../benchmark-results.md#mp2-cloud-benchmark-ticket-44). Completion: each table names its host, commit, container or VM resources, and states what the data cannot show.
