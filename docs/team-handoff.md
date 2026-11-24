@@ -28,7 +28,7 @@ Issues #23 to #26 are done; their live state is on GitHub. Evidence: stopped-wor
 
 ### Remaining #27 work
 
-- **Cloud VM runs (blocked):** the cloud topology is 3 VMs (1 master, 2 workers), measured as its own dataset; see [benchmark evidence](agents/mp2-development.md#benchmark-evidence). `just benchmark-cluster` drives only the local Compose cluster, so the cloud runs need a remote driver first ([#44](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/44)), plus VM access and specs from the owner.
+- **Cloud runs (in progress):** the cloud topology is 3 LXC containers (1 master, 2 workers), measured as its own dataset; see [benchmark evidence](agents/mp2-development.md#benchmark-evidence) and [cloud containers](cloud-containers.md). The owner supplied access and specs. `just benchmark-cluster` drives only the local Compose cluster, so the cloud runs need a remote driver first ([#44](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/44)).
 - **Deck (open):** author and ownership are undecided. Sections needed: overview, distribution, synchronization, recovery evidence ([cluster acceptance](cluster-acceptance.md)), and benchmarking.
 - **Submission (human action):** commit everything, then run `just package-submission --csv <output.csv> --deck <deck.pptx>`. It builds the source-only ZIP from `HEAD`, rejects environments, secrets, course inputs, models, and run outputs, scores the CSV, and requires the deck. The handout asks for ZIP, CSV, and PPT only; no video.
 
