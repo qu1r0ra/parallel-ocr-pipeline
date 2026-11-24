@@ -1,0 +1,53 @@
+{
+  "environment": {
+    "server0": {
+      "hostname": "csc611m-01-server0",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "2a9dff87c4f9b2cc406c3225aca40a6728a72554",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "images": "100",
+      "dataset_sha256": "48fd17e5098ee53869b3dc1fc774f81813bbc841998fb9dda9064faf93c70541"
+    },
+    "server1": {
+      "hostname": "csc611m-01-server1",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "2a9dff87c4f9b2cc406c3225aca40a6728a72554",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    "server2": {
+      "hostname": "csc611m-01-server2",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "2a9dff87c4f9b2cc406c3225aca40a6728a72554",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    }
+  },
+  "fault": {
+    "nodes": 2,
+    "procs": 1,
+    "total_s": 94.922,
+    "window_s": 92.952,
+    "valid": true,
+    "assigns": 101,
+    "expires": [
+      "EXPIRE image_id=71 file=img0071.png node=csc611m-01-server2 process=18241:a507333eb2fa4bb2ad55dd783d542647 outcome=requeued"
+    ],
+    "killed_worker_node": "server2",
+    "accuracy": [
+      "Character accuracy: 0.9964 (threshold 0.5)"
+    ],
+    "run_dir": "/root/run/20261124-160758-fault",
+    "reassigned": true
+  }
+}

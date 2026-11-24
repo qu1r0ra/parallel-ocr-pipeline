@@ -1,0 +1,1509 @@
+{
+  "environment": {
+    "server0": {
+      "hostname": "csc611m-01-server0",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "1c21d457ac24d9eb94d532e19f093eb8191ba455",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+      "images": "100",
+      "dataset_sha256": "48fd17e5098ee53869b3dc1fc774f81813bbc841998fb9dda9064faf93c70541"
+    },
+    "server1": {
+      "hostname": "csc611m-01-server1",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "1c21d457ac24d9eb94d532e19f093eb8191ba455",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    },
+    "server2": {
+      "hostname": "csc611m-01-server2",
+      "vcpus": "2",
+      "mem_mib": "4096",
+      "kernel": "6.17.9-1-pve",
+      "tesseract": "tesseract 5.3.4",
+      "python": "Python 3.15.2",
+      "commit": "1c21d457ac24d9eb94d532e19f093eb8191ba455",
+      "model_sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+    }
+  },
+  "reps": 5,
+  "invalid_samples": 0,
+  "node_sweep_procs_per_node": 2,
+  "node_sweep": [
+    {
+      "nodes": 1,
+      "runs": 5,
+      "mean_s": 3.912,
+      "stdev_s": 0.008,
+      "min_s": 3.908,
+      "max_s": 3.927,
+      "speedup": 1.0,
+      "efficiency": 1.0
+    },
+    {
+      "nodes": 2,
+      "runs": 5,
+      "mean_s": 2.327,
+      "stdev_s": 0.032,
+      "min_s": 2.282,
+      "max_s": 2.371,
+      "speedup": 1.681,
+      "efficiency": 0.841
+    }
+  ],
+  "proc_sweeps": {
+    "1": [
+      {
+        "procs": 1,
+        "runs": 5,
+        "mean_s": 7.172,
+        "stdev_s": 0.055,
+        "min_s": 7.111,
+        "max_s": 7.212,
+        "speedup": 1.0,
+        "efficiency": 1.0
+      },
+      {
+        "procs": 2,
+        "runs": 5,
+        "mean_s": 3.912,
+        "stdev_s": 0.008,
+        "min_s": 3.908,
+        "max_s": 3.927,
+        "speedup": 1.833,
+        "efficiency": 0.917
+      },
+      {
+        "procs": 3,
+        "runs": 5,
+        "mean_s": 4.05,
+        "stdev_s": 0.007,
+        "min_s": 4.043,
+        "max_s": 4.061,
+        "speedup": 1.771,
+        "efficiency": 0.59
+      },
+      {
+        "procs": 4,
+        "runs": 5,
+        "mean_s": 4.117,
+        "stdev_s": 0.012,
+        "min_s": 4.109,
+        "max_s": 4.139,
+        "speedup": 1.742,
+        "efficiency": 0.435
+      },
+      {
+        "procs": 5,
+        "runs": 5,
+        "mean_s": 4.272,
+        "stdev_s": 0.03,
+        "min_s": 4.24,
+        "max_s": 4.31,
+        "speedup": 1.679,
+        "efficiency": 0.336
+      },
+      {
+        "procs": 6,
+        "runs": 5,
+        "mean_s": 4.295,
+        "stdev_s": 0.081,
+        "min_s": 4.217,
+        "max_s": 4.414,
+        "speedup": 1.67,
+        "efficiency": 0.278
+      },
+      {
+        "procs": 7,
+        "runs": 5,
+        "mean_s": 4.377,
+        "stdev_s": 0.027,
+        "min_s": 4.36,
+        "max_s": 4.425,
+        "speedup": 1.639,
+        "efficiency": 0.234
+      },
+      {
+        "procs": 8,
+        "runs": 5,
+        "mean_s": 4.447,
+        "stdev_s": 0.099,
+        "min_s": 4.32,
+        "max_s": 4.55,
+        "speedup": 1.613,
+        "efficiency": 0.202
+      }
+    ],
+    "2": [
+      {
+        "procs": 1,
+        "runs": 5,
+        "mean_s": 4.097,
+        "stdev_s": 0.04,
+        "min_s": 4.028,
+        "max_s": 4.124,
+        "speedup": 1.0,
+        "efficiency": 1.0
+      },
+      {
+        "procs": 2,
+        "runs": 5,
+        "mean_s": 2.327,
+        "stdev_s": 0.032,
+        "min_s": 2.282,
+        "max_s": 2.371,
+        "speedup": 1.76,
+        "efficiency": 0.88
+      },
+      {
+        "procs": 3,
+        "runs": 5,
+        "mean_s": 2.402,
+        "stdev_s": 0.046,
+        "min_s": 2.334,
+        "max_s": 2.454,
+        "speedup": 1.705,
+        "efficiency": 0.568
+      },
+      {
+        "procs": 4,
+        "runs": 5,
+        "mean_s": 2.43,
+        "stdev_s": 0.013,
+        "min_s": 2.409,
+        "max_s": 2.445,
+        "speedup": 1.686,
+        "efficiency": 0.421
+      },
+      {
+        "procs": 5,
+        "runs": 5,
+        "mean_s": 2.476,
+        "stdev_s": 0.04,
+        "min_s": 2.439,
+        "max_s": 2.535,
+        "speedup": 1.654,
+        "efficiency": 0.331
+      },
+      {
+        "procs": 6,
+        "runs": 5,
+        "mean_s": 2.54,
+        "stdev_s": 0.037,
+        "min_s": 2.481,
+        "max_s": 2.574,
+        "speedup": 1.613,
+        "efficiency": 0.269
+      },
+      {
+        "procs": 7,
+        "runs": 5,
+        "mean_s": 2.588,
+        "stdev_s": 0.034,
+        "min_s": 2.551,
+        "max_s": 2.631,
+        "speedup": 1.583,
+        "efficiency": 0.226
+      },
+      {
+        "procs": 8,
+        "runs": 5,
+        "mean_s": 2.674,
+        "stdev_s": 0.08,
+        "min_s": 2.556,
+        "max_s": 2.773,
+        "speedup": 1.532,
+        "efficiency": 0.191
+      }
+    ]
+  },
+  "samples": [
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 8.758,
+      "window_s": 7.212,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p1-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 4.995,
+      "window_s": 3.908,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p2-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 6.229,
+      "window_s": 4.049,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p3-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 6.19,
+      "window_s": 4.114,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p4-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 6.311,
+      "window_s": 4.31,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p5-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 6.289,
+      "window_s": 4.217,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p6-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 6.243,
+      "window_s": 4.364,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p7-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 6.277,
+      "window_s": 4.37,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p8-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 5.314,
+      "window_s": 4.124,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p1-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 4.003,
+      "window_s": 2.282,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p2-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 4.073,
+      "window_s": 2.334,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p3-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 4.0,
+      "window_s": 2.445,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p4-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 4.09,
+      "window_s": 2.498,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p5-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 4.035,
+      "window_s": 2.574,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p6-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 4.022,
+      "window_s": 2.551,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p7-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 4.063,
+      "window_s": 2.773,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p8-r1",
+      "sweep": "procs",
+      "rep": 1
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 8.821,
+      "window_s": 7.112,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p1-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 4.968,
+      "window_s": 3.927,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p2-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 6.279,
+      "window_s": 4.061,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p3-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 6.223,
+      "window_s": 4.11,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p4-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 6.272,
+      "window_s": 4.294,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p5-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 6.265,
+      "window_s": 4.414,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p6-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 6.217,
+      "window_s": 4.36,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p7-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 6.34,
+      "window_s": 4.55,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p8-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 5.508,
+      "window_s": 4.121,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p1-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 4.235,
+      "window_s": 2.317,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p2-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 4.193,
+      "window_s": 2.419,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p3-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 4.271,
+      "window_s": 2.428,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p4-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 4.231,
+      "window_s": 2.447,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p5-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 4.115,
+      "window_s": 2.569,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p6-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 4.259,
+      "window_s": 2.573,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p7-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 4.311,
+      "window_s": 2.683,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p8-r2",
+      "sweep": "procs",
+      "rep": 2
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 9.162,
+      "window_s": 7.212,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p1-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 5.195,
+      "window_s": 3.909,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p2-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 6.484,
+      "window_s": 4.043,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p3-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 6.453,
+      "window_s": 4.139,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p4-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 6.447,
+      "window_s": 4.24,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p5-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 6.525,
+      "window_s": 4.22,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p6-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 6.472,
+      "window_s": 4.374,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p7-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 6.474,
+      "window_s": 4.32,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p8-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 5.476,
+      "window_s": 4.096,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p1-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 4.273,
+      "window_s": 2.332,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p2-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 4.246,
+      "window_s": 2.425,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p3-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 4.219,
+      "window_s": 2.433,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p4-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 4.379,
+      "window_s": 2.535,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p5-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 4.171,
+      "window_s": 2.481,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p6-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 4.244,
+      "window_s": 2.569,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p7-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 4.144,
+      "window_s": 2.652,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p8-r3",
+      "sweep": "procs",
+      "rep": 3
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 9.074,
+      "window_s": 7.111,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p1-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 5.204,
+      "window_s": 3.909,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p2-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 6.48,
+      "window_s": 4.052,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p3-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 6.55,
+      "window_s": 4.109,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p4-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 6.589,
+      "window_s": 4.246,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p5-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 6.474,
+      "window_s": 4.312,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p6-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 6.542,
+      "window_s": 4.425,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p7-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 6.505,
+      "window_s": 4.52,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p8-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 5.534,
+      "window_s": 4.115,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p1-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 4.286,
+      "window_s": 2.335,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p2-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 4.266,
+      "window_s": 2.38,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p3-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 4.208,
+      "window_s": 2.409,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p4-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 4.262,
+      "window_s": 2.462,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p5-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 4.235,
+      "window_s": 2.537,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p6-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 4.28,
+      "window_s": 2.616,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p7-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 4.265,
+      "window_s": 2.556,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p8-r4",
+      "sweep": "procs",
+      "rep": 4
+    },
+    {
+      "nodes": 1,
+      "procs": 1,
+      "total_s": 9.172,
+      "window_s": 7.212,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p1-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 2,
+      "total_s": 5.272,
+      "window_s": 3.909,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p2-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 3,
+      "total_s": 5.237,
+      "window_s": 4.047,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p3-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 4,
+      "total_s": 6.625,
+      "window_s": 4.114,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p4-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 5,
+      "total_s": 6.497,
+      "window_s": 4.27,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p5-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 6,
+      "total_s": 6.515,
+      "window_s": 4.314,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p6-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 7,
+      "total_s": 6.548,
+      "window_s": 4.362,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p7-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 1,
+      "procs": 8,
+      "total_s": 6.542,
+      "window_s": 4.477,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n1p8-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 1,
+      "total_s": 5.546,
+      "window_s": 4.028,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p1-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 2,
+      "total_s": 4.259,
+      "window_s": 2.371,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p2-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 3,
+      "total_s": 4.217,
+      "window_s": 2.454,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p3-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 4,
+      "total_s": 4.185,
+      "window_s": 2.435,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p4-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 5,
+      "total_s": 4.207,
+      "window_s": 2.439,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p5-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 6,
+      "total_s": 4.212,
+      "window_s": 2.541,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p6-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 7,
+      "total_s": 4.16,
+      "window_s": 2.631,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p7-r5",
+      "sweep": "procs",
+      "rep": 5
+    },
+    {
+      "nodes": 2,
+      "procs": 8,
+      "total_s": 4.195,
+      "window_s": 2.707,
+      "valid": true,
+      "assigns": 100,
+      "expires": [],
+      "killed_worker_node": "",
+      "accuracy": [
+        "Character accuracy: 0.9964 (threshold 0.5)"
+      ],
+      "run_dir": "/root/run/20261124-154917-n2p8-r5",
+      "sweep": "procs",
+      "rep": 5
+    }
+  ]
+}
