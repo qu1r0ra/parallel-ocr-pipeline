@@ -6,7 +6,7 @@ This repository uses a single-context layout:
 ## Before exploring
 
 Read the glossary if present and any ADRs relevant to the work.
-If absent, proceed silently; create them lazily when needed.
+If they are absent, proceed silently. Create them when needed.
 
 ## Vocabulary and decisions
 
