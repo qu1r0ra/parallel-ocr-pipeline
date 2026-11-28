@@ -2,7 +2,7 @@
 
 This project extends a single-machine OCR pipeline (CSC611M MP1) into a distributed pipeline (MP2). The master owns the image queue and sends images to worker processes over Pyro5. Each process requests one image, preprocesses it, runs Tesseract, and returns its result. The master writes the results to a CSV.
 
-The master tracks assignments and reassigns unfinished work after a deadline. Each image appears once in a successful output. Workers use separate filesystems and do not need access to the master's dataset. See [recovery and shutdown](docs/master-recovery.md) for the failure policy.
+The master reassigns unfinished work after a deadline. Each image appears once in a successful output. Workers use separate filesystems and do not need access to the master's dataset. See [recovery and shutdown](docs/master-recovery.md) for the failure policy.
 
 ## How it works
 
@@ -16,7 +16,7 @@ Each worker process requests one image at a time. The master sends the image and
 - [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) on each worker, available on `PATH`.
 - The course-provided image archive and English Tesseract model. See [local assets](local-assets/README.md) for their locations. These files are not included in the repository.
 
-The team ran the native MP2 commands on Linux and Windows. The commands below use `just`. For Windows-specific installation and troubleshooting, see [Windows setup](docs/setup-windows.md).
+We ran the native MP2 commands on Linux and Windows. The commands below use `just`. For Windows installation and troubleshooting, see [Windows setup](docs/setup-windows.md).
 
 ## Prepare the project
 
@@ -91,4 +91,4 @@ Run `just --list` for available commands. Run `just verify` for the source check
 
 ## AI declaration
 
-The developers used Claude Code and Codex to assist with specifications, code, debugging, and tests. Bunyi and Umali made the project's key decisions, guided development, and reviewed and validated the work. They retain responsibility for the project and any errors.
+We used Claude Code and Codex to assist with specifications, code, debugging, and tests. We made the project's decisions, guided development, and reviewed and validated the work. We take responsibility for the project and any errors.
