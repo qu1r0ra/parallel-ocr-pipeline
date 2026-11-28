@@ -116,7 +116,7 @@ The user confirmed the following test seams before publication.
 
 ### Approved execution map
 
-- **Batch 1:** [#2 Prepare Windows development and handoff](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/2), [#3 Agree the concurrency and shutdown design](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3) (parallel candidates; neither has blockers).
-- **Batch 2:** [#4 Recognize and evaluate images independently](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/4) (blocked by #2), [#5 Process configured images with synchronized workers](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/5) (blocked by #2 and #3) (parallel candidates with separate implementation owners).
-- **Batch 3:** [#6 Validate the integrated OCR application](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6) (blocked by #4 and #5).
-- **Batch 4:** [#7 Benchmark and prepare submission](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/7) (blocked by #6).
+- **Batch 1:** [#2 Prepare Windows development and handoff](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/2), [#3 Agree the concurrency and shutdown design](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/3) (parallel candidates; neither has blockers).
+- **Batch 2:** [#4 Recognize and evaluate images independently](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/4) (blocked by #2), [#5 Process configured images with synchronized workers](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/5) (blocked by #2 and #3) (parallel candidates with separate implementation owners).
+- **Batch 3:** [#6 Validate the integrated OCR application](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/6) (blocked by #4 and #5).
+- **Batch 4:** [#7 Benchmark and prepare submission](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/7) (blocked by #6).

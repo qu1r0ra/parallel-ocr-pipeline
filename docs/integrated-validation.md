@@ -1,6 +1,6 @@
 # Integrated OCR validation
 
-This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/6). The project owner completed this acceptance on their Windows machine. Imman later confirmed the integrated pipeline works on his Windows machine; that confirmation does not add a second timed acceptance run. The timings below are single acceptance runs, not benchmark measurements for #7.
+This record covers the local evidence for [issue #6](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/6). The project owner completed this acceptance on their Windows machine. Imman later confirmed the integrated pipeline works on his Windows machine; that confirmation does not add a second timed acceptance run. The timings below are single acceptance runs, not benchmark measurements for #7.
 
 ## Local environment
 

@@ -1,6 +1,6 @@
 # MP2 development
 
-The authoritative implementation design is [Build the MP2 distributed OCR pipeline (#22)](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). Read its full body and the relevant approved child ticket before implementation or review. The parent owns the architecture, recovery, output behavior, testing boundary, scope, and deferred experiments. Use its execution map and issue relationships for blockers and work order.
+The authoritative implementation design is [Build the MP2 distributed OCR pipeline (#22)](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/22). Read its full body and the relevant approved child ticket before implementation or review. The parent owns the architecture, recovery, output behavior, testing boundary, scope, and deferred experiments. Use its execution map and issue relationships for blockers and work order.
 
 For course requirements, use the [MP2 handout summary](../requirements-mp2.md). Keep assignment requirements distinct from implementation choices recorded in the spec.
 

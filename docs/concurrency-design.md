@@ -1,6 +1,6 @@
 # Concurrency and shutdown design
 
-**Status: accepted.** Both teammates confirmed this plan during joint planning on October 12, 2026, for [#3](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/3). Imman implements the pipeline in [#5](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/5); Quirora implements recognition in [#4](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/4).
+**Status: accepted.** Both teammates confirmed this plan during joint planning on October 12, 2026, for [#3](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/3). Imman implements the pipeline in [#5](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/5); Quirora implements recognition in [#4](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/4).
 
 ## Agreed decisions
 

@@ -22,7 +22,7 @@ The accepted implementation boundaries and failure behavior remain in the [OCR c
 
 ## MP2 handoff
 
-The agreed design, responsibilities, and live dependency map are in [spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22). The partners reviewed the shared contract and agreed to the split: Imman leads master recovery (#24); Quirora leads workers and deployment (#25) and local resource-dependent validation. Both contribute to integration, benchmarking, and deliverables. The MP1 split above is historical.
+The agreed design, responsibilities, and live dependency map are in [spec #22](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/22). The partners reviewed the shared contract and agreed to the split: Imman leads master recovery (#24); Quirora leads workers and deployment (#25) and local resource-dependent validation. Both contribute to integration, benchmarking, and deliverables. The MP1 split above is historical.
 
 Issues #23 to #26 are done; their live state is on GitHub. Evidence: stopped-worker recovery in [cluster acceptance](cluster-acceptance.md), and local container benchmarking (#27) in [benchmark results](benchmark-results.md#mp2-cluster-benchmark-ticket-27) (linear 1 to 16 sweeps on the Ubuntu laptop; best measured configuration 1 worker node × 8 processes, 2.088 s window). Cloud evidence is a separate dataset in [benchmark results](benchmark-results.md#mp2-cloud-benchmark-ticket-44) (3 LXC containers; best measured configuration 2 worker nodes × 2 processes, 2.327 s window).
 

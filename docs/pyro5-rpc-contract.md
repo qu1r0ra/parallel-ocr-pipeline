@@ -1,6 +1,6 @@
 # MP2 direct Pyro5 RPC and lifecycle contract
 
-This document records the shared RPC boundary established in issue #23. The accepted design is in [MP2 spec #22](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/22); check the live tickets for implementation status.
+This document records the shared RPC boundary established in issue #23. The accepted design is in [MP2 spec #22](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/22); check the live tickets for implementation status.
 
 ## Topology and startup
 

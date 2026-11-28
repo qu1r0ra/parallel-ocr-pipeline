@@ -1,7 +1,7 @@
 services:
   master:
     build: .
-    image: parallel-ocr-pipeline:local
+    image: distributed-ocr-pipeline:local
     command: ["python", "scripts/run_container.py", "master"]
     environment:
       IMAGE_DIR: /data/images
@@ -20,7 +20,7 @@ services:
 
   worker:
     build: .
-    image: parallel-ocr-pipeline:local
+    image: distributed-ocr-pipeline:local
     command: ["python", "scripts/run_container.py", "worker"]
     stop_grace_period: 60s
     environment:

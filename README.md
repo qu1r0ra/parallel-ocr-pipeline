@@ -1,4 +1,4 @@
-# Parallel OCR Pipeline
+# Distributed OCR Pipeline
 
 This project extends a single-machine OCR pipeline (CSC611M MP1) into a distributed pipeline (MP2). The master owns the image queue and sends images to worker processes over Pyro5. Each process requests one image, preprocesses it, runs Tesseract, and returns its result. The master writes the results to a CSV.
 

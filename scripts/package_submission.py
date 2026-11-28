@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / "results" / "submission"
-ZIP_NAME = "parallel-ocr-pipeline-source.zip"
+ZIP_NAME = "distributed-ocr-pipeline-source.zip"
 
 # Entries the archive must never contain (fnmatch patterns on forward-slash paths).
 FORBIDDEN = (

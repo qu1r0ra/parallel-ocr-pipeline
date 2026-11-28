@@ -1,6 +1,6 @@
 # OCR recognizer: settings, preprocessing, and evaluation
 
-[`TesseractRecognizer`](../src/parallel_ocr_pipeline/recognizer.py) implements the [`ImageRecognizer`](ocr-contract.md) contract for [#4](https://github.com/qu1r0ra/parallel-ocr-pipeline/issues/4). It is independent of the pipeline, configuration parser, loader, and workers.
+[`TesseractRecognizer`](../src/parallel_ocr_pipeline/recognizer.py) implements the [`ImageRecognizer`](ocr-contract.md) contract for [#4](https://github.com/qu1r0ra/distributed-ocr-pipeline/issues/4). It is independent of the pipeline, configuration parser, loader, and workers.
 
 ## Settings
 

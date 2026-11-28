@@ -1,7 +1,7 @@
 [project]
-name = "parallel-ocr-pipeline"
+name = "distributed-ocr-pipeline"
 version = "0.1.0"
-description = "Course scaffold and collaboration contract for a Windows OCR pipeline"
+description = "Distributed OCR pipeline for CSC611M MP2"
 requires-python = ">=3.15,<3.16"
 dependencies = [
     "Pillow>=11.3.0",

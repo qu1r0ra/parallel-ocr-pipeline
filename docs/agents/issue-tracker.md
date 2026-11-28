@@ -1,7 +1,7 @@
 # Issue tracker: GitHub
 
 Issues and published specs live in GitHub Issues for
-`qu1r0ra/parallel-ocr-pipeline`. Use the `gh` CLI.
+`qu1r0ra/distributed-ocr-pipeline`. Use the `gh` CLI.
 
 ## Operations
 
