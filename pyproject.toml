@@ -1,5 +1,5 @@
 [project]
-name = "distributed-ocr-pipeline"
+name = "parallel-ocr-pipeline"
 version = "0.1.0"
 description = "Distributed OCR pipeline for CSC611M MP2"
 requires-python = ">=3.15,<3.16"

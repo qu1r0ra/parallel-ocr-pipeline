@@ -103,7 +103,7 @@ wheels = [
 ]
 
 [[package]]
-name = "distributed-ocr-pipeline"
+name = "parallel-ocr-pipeline"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
