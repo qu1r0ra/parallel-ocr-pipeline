@@ -68,7 +68,15 @@ The CSV contains `image_id`, `filename`, `text`, and `processing_time_ms` for ea
 
 ## Results at a glance
 
-In the school-cloud experiment, one master and up to two worker nodes ran in separate LXC containers. With two processes per worker node, the mean processing window fell from 3.912 seconds on one worker node to 2.327 seconds on two: a 1.681× speedup and 0.841 efficiency. The best measured setting was two nodes with two processes each. These figures cover the master's first assignment through its completion log, rather than the entire startup-to-exit runtime; the broader timing and its limitations are in [benchmark results](docs/benchmark-results.md#mp2-cloud-benchmark-ticket-44).
+In the school-cloud experiment, one master and up to two worker nodes ran in separate LXC containers, with 2 vCPUs per node. Each setting was measured five times on the same 100 images.
+
+![Cloud worker-node comparison: mean processing window and speedup](docs/benchmark-cloud/node_sweep.svg)
+
+With two processes per worker node, the mean processing window fell from 3.912 seconds on one worker node to 2.327 seconds on two: a 1.681× speedup and 0.841 efficiency. The dashed line shows ideal linear speedup. The timing window runs from the master's first assignment through its completion log; it excludes startup and part of shutdown. The broader elapsed-time comparison and its limitations are in [benchmark results](docs/benchmark-results.md#mp2-cloud-benchmark-ticket-44).
+
+![Cloud process sweep on two worker nodes: mean processing window and speedup](docs/benchmark-cloud/proc_sweep_2nodes.svg)
+
+The best measured cloud setting was two worker nodes with two processes each. More processes shared each node's two vCPUs and did not improve the measured window. This result applies to the tested configurations and environment.
 
 In a separate stopped-worker test, the master reassigned an expired image and produced 100 unique output rows. The same dataset achieved 0.9964 character accuracy, above the handout's 0.5 target. See [cluster acceptance](docs/cluster-acceptance.md) for the recorded test and [benchmark results](docs/benchmark-results.md#fault-injection-hard-killed-worker-node) for the cloud fault run.
 
@@ -81,7 +89,7 @@ In a separate stopped-worker test, the master reassigned an expired image and pr
 - [Benchmark results](docs/benchmark-results.md) report the local and cloud measurements, timing boundaries, and limits.
 - [OCR evaluation](docs/ocr-evaluation.md) explains preprocessing and recognition scoring.
 
-To score a complete CSV against the supplied labels, run `just evaluate-pipeline path/to/ocr_results.csv`. The recorded cloud runs reached 0.9964 character accuracy on the supplied 100-image dataset. The handout target is at least 0.5.
+To score a complete CSV against the supplied labels, run `just evaluate-pipeline path/to/ocr_results.csv`.
 
 ## MP1 and development
 
