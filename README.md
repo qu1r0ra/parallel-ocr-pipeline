@@ -6,15 +6,7 @@ The master tracks assignments and reassigns unfinished work after a deadline. Ea
 
 ## How it works
 
-```text
-                         Pyro5 over the network
-Master                   <-------------------->  Worker node 1: OCR processes
-  image dataset          <-------------------->  Worker node 2: OCR processes
-  task queue and results
-         |
-         v
-  ocr_results.csv
-```
+![Architecture diagram showing a master image queue, two worker nodes, and CSV result collection](docs/architecture.png)
 
 Each worker process requests one image at a time. The master sends the image and records the assignment; the worker returns the recognized text and its processing time. A lock protects the master's shared task and result state as concurrent requests arrive. If an assignment expires after 90 seconds, the master requeues the image and rejects a late result from the old assignment. After all work finishes, the master signals workers to stop and publishes the CSV. The [RPC contract](docs/pyro5-rpc-contract.md) and [recovery guide](docs/master-recovery.md) explain the protocol and failure handling.
 
