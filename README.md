@@ -4,6 +4,20 @@ This project extends a single-machine OCR pipeline (CSC611M MP1) into a distribu
 
 The master tracks assignments and reassigns unfinished work after a deadline. Each image appears once in a successful output. Workers use separate filesystems and do not need access to the master's dataset. See [recovery and shutdown](docs/master-recovery.md) for the failure policy.
 
+## How it works
+
+```text
+                         Pyro5 over the network
+Master                   <-------------------->  Worker node 1: OCR processes
+  image dataset          <-------------------->  Worker node 2: OCR processes
+  task queue and results
+         |
+         v
+  ocr_results.csv
+```
+
+Each worker process requests one image at a time. The master sends the image and records the assignment; the worker returns the recognized text and its processing time. A lock protects the master's shared task and result state as concurrent requests arrive. If an assignment expires after 90 seconds, the master requeues the image and rejects a late result from the old assignment. After all work finishes, the master signals workers to stop and publishes the CSV. The [RPC contract](docs/pyro5-rpc-contract.md) and [recovery guide](docs/master-recovery.md) explain the protocol and failure handling.
+
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) and [just](https://just.systems/man/en/packages.html). uv installs the project's Python 3.15 environment from `uv.lock`.
@@ -44,9 +58,19 @@ Each worker needs its own copy of `local-assets/models/eng.traineddata`. Run the
    just worker
    ```
 
+The master exits if no worker connects within 60 seconds, so start a worker promptly.
+
 Use at least two separate worker machines, virtual machines, or containers for the MP2 topology. For a local deployment, see [Docker Compose setup](docs/setup-containers.md). The school-cloud deployment used native processes in three LXC containers. Its setup is in [cloud containers](docs/cloud-containers.md).
 
 The master writes `ocr_results.csv` beside its configuration file after all images succeed. On failure, it writes partial results and diagnostics. It preserves any previous complete CSV as `ocr_results.previous.csv`. See [recovery and shutdown](docs/master-recovery.md) for output and shutdown details.
+
+The CSV contains `image_id`, `filename`, `text`, and `processing_time_ms` for each image.
+
+## Results at a glance
+
+In the school-cloud experiment, one master and up to two worker nodes ran in separate LXC containers. With two processes per worker node, the mean processing window fell from 3.912 seconds on one worker node to 2.327 seconds on two: a 1.681× speedup and 0.841 efficiency. The best measured setting was two nodes with two processes each. These figures cover the master's first assignment through its completion log, rather than the entire startup-to-exit runtime; the broader timing and its limitations are in [benchmark results](docs/benchmark-results.md#mp2-cloud-benchmark-ticket-44).
+
+In a separate stopped-worker test, the master reassigned an expired image and produced 100 unique output rows. The same dataset achieved 0.9964 character accuracy, above the handout's 0.5 target. See [cluster acceptance](docs/cluster-acceptance.md) for the recorded test and [benchmark results](docs/benchmark-results.md#fault-injection-hard-killed-worker-node) for the cloud fault run.
 
 ## Evidence and documentation
 
@@ -67,4 +91,4 @@ Run `just --list` for available commands. Run `just verify` for the source check
 
 ## AI declaration
 
-The developers used Claude Code and Codex during this project's development and retain responsibility for the work.
+The developers used Claude Code and Codex to assist with specifications, code, debugging, and tests. Bunyi and Umali made the project's key decisions, guided development, and reviewed and validated the work. They retain responsibility for the project and any errors.

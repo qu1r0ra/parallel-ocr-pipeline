@@ -1,5 +1,10 @@
 # Agent skills
 
+### Agent documentation
+
+- Apply the `asd-ste100` skill in STE-flavored mode when creating or editing agent-facing documentation.
+- Write the human-facing `README.md` for readability. It is exempt from this skill requirement.
+
 ### Project verification
 
 - For Python code changes, run `just verify` before PR delivery. This repository uses Python 3.15.
