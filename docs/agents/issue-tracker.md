@@ -22,7 +22,7 @@ When it says to fetch a ticket, read the issue and its comments.
 
 ## Pull requests as a triage surface
 
-PRs as a request surface: no.
+Use issues, not pull requests, as the request surface.
 
 GitHub issues and PRs share a number space. When the type is unclear,
 try `gh pr view <number>` and fall back to `gh issue view <number>`.

@@ -289,6 +289,8 @@ The dataset and model remain local course inputs; their hashes were not recorded
 | 1 | 5 | 3.912 | 0.008 | 3.908–3.927 | 1.000× | 1.000 |
 | 2 | 5 | 2.327 | 0.032 | 2.282–2.371 | 1.681× | 0.841 |
 
+The handout calls for total processing time but does not specify start and stop events. The table uses the processing window defined above. It excludes startup and part of shutdown. As a broader comparison, the same samples have mean driver elapsed times of 5.127 s and 4.211 s. These give S = 1.217 and E = 0.609 for two nodes. This elapsed time includes SSH launch and polling overhead, so it is not a pure application runtime. Both measurements show a gain, but their boundaries yield different ratios.
+
 ### Fault injection (hard-killed worker node)
 
 One run on 2 worker nodes at 1 process per node. Server2's worker and its spawn children were killed with `SIGKILL` 2.5 s after the node started, mid-run. Raw record: [`fault-summary.json`](benchmark-cloud/fault-summary.json).

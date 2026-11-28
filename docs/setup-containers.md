@@ -47,9 +47,9 @@ Copy `ocr_results.partial.csv` and `ocr_failures.csv` the same way when the run 
 
 The master reassigns an unfinished image when its 90-second assignment deadline expires, up to two times. See [master recovery and shutdown](master-recovery.md). `just acceptance` automates the stopped-worker demonstration; see [cluster acceptance](cluster-acceptance.md).
 
-## Deploy on separate school-cloud machines later
+## School-cloud deployment
 
-Build or transfer the same `parallel-ocr-pipeline:local` image to each VM. Start the master with its own read-only dataset mount and publish TCP port 5000. Copy the supplied model into each worker container before starting it. Start worker containers with `MASTER_HOST` set to the master's reachable private IP or DNS name and `MASTER_PORT=5000`; set `N_WORKERS` independently on each worker VM. Permit worker-to-master traffic on that port. Only the master VM/container receives the image dataset, and results are copied from the master container after completion. This uses the same Pyro application protocol without shared folders or volumes. Cloud-specific firewall and VM provisioning details depend on the school's platform and will be filled in after access is provided.
+The allocated school-cloud machines are unprivileged LXC containers. The project runs native master and worker processes there, without Docker. See [cloud containers](cloud-containers.md) for the topology, provisioning, and benchmark commands.
 
 ## Run source checks on Linux
 
